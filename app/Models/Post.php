@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\PostType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -22,6 +23,11 @@ class Post extends Model
         'status',
     ];
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -40,5 +46,12 @@ class Post extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class, 'post_id');
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'type' => PostType::class,
+        ];
     }
 }
