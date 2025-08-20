@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Comment extends Model
 {
+    use HasFactory;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -16,7 +20,17 @@ class Comment extends Model
     protected $fillable = [
         'content',
         'parent_id',
+        'post_id',
     ];
+
+    protected $appends = ['created_at_human'];
+
+    public function getCreatedAtHumanAttribute(): string
+    {
+        return $this->created_at?->diffForHumans([
+            'short' => true,
+        ]) ?? '';
+    }
 
     public function user(): BelongsTo
     {
@@ -36,5 +50,10 @@ class Comment extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Comment::class, 'parent_id');
+    }
+
+    public function likes(): MorphMany
+    {
+        return $this->morphMany(Like::class, 'likeable');
     }
 }
