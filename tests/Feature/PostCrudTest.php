@@ -10,7 +10,7 @@ class PostCrudTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_can_view_index_and_show_published(): void
+    public function test_guest_cannot_view_index_or_show(): void
     {
         $user = User::factory()->create();
         $post = $user->posts()->create([
@@ -21,8 +21,8 @@ class PostCrudTest extends TestCase
             'type' => 'article',
         ]);
 
-        $this->get(route('posts.index'))->assertOk();
-        $this->get(route('posts.show', $post))->assertOk();
+        $this->get(route('posts.index'))->assertRedirect('/login');
+        $this->get(route('posts.show', $post))->assertRedirect('/login');
     }
 
     public function test_guest_cannot_access_create_or_store(): void
