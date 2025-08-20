@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -21,5 +22,10 @@ Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->middleware(['
 Route::put('/posts/{post}', [PostController::class, 'update'])->middleware(['auth'])->name('posts.update');
 Route::delete('/posts/{post}', [PostController::class, 'destroy'])->middleware(['auth'])->name('posts.destroy');
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+// Comments routes
+Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->middleware(['auth'])->name('posts.comments.store');
+Route::post('/comments/{comment}/like', [CommentController::class, 'like'])->middleware(['auth'])->name('comments.like');
+Route::delete('/comments/{comment}/like', [CommentController::class, 'unlike'])->middleware(['auth'])->name('comments.unlike');
+
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';
