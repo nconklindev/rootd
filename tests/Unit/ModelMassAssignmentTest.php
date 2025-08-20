@@ -19,17 +19,17 @@ class ModelMassAssignmentTest extends TestCase
         $user = User::factory()->create();
 
         $post = $user->posts()->create([
+            'title' => 'Hello World',
             'slug' => 'hello-world',
             'content' => 'Post content',
             'excerpt' => 'Post excerpt',
             'type' => 'article',
-            'status' => 'draft',
         ]);
 
         $this->assertDatabaseHas('posts', [
             'id' => $post->id,
+            'title' => 'Hello World',
             'slug' => 'hello-world',
-            'status' => 'draft',
             'user_id' => $user->id,
         ]);
     }
@@ -39,11 +39,11 @@ class ModelMassAssignmentTest extends TestCase
         $user = User::factory()->create();
 
         $post = $user->posts()->create([
+            'title' => 'Should not override user',
             'slug' => 'should-not-override-user',
             'content' => 'x',
             'excerpt' => 'x',
             'type' => 'article',
-            'status' => 'draft',
             'user_id' => 999, // should be ignored by mass assignment
         ]);
 
@@ -54,11 +54,11 @@ class ModelMassAssignmentTest extends TestCase
     {
         $user = User::factory()->create();
         $post = $user->posts()->create([
+            'title' => 'Post A',
             'slug' => 'post-a',
             'content' => 'C',
             'excerpt' => 'E',
             'type' => 'article',
-            'status' => 'published',
         ]);
 
         $comment = $post->comments()->make([
@@ -80,11 +80,11 @@ class ModelMassAssignmentTest extends TestCase
     {
         $user = User::factory()->create();
         $post = $user->posts()->create([
+            'title' => 'Post C',
             'slug' => 'post-c',
             'content' => 'C',
             'excerpt' => 'E',
             'type' => 'article',
-            'status' => 'published',
         ]);
 
         $comment = $post->comments()->make([
@@ -104,11 +104,11 @@ class ModelMassAssignmentTest extends TestCase
     {
         $user = User::factory()->create();
         $post = $user->posts()->create([
+            'title' => 'Post B',
             'slug' => 'post-b',
             'content' => 'C',
             'excerpt' => 'E',
             'type' => 'article',
-            'status' => 'published',
         ]);
 
         $attachment = new Attachment(['type' => 'image']);
@@ -134,11 +134,11 @@ class ModelMassAssignmentTest extends TestCase
     {
         $user = User::factory()->create();
         $post = $user->posts()->create([
+            'title' => 'Post D',
             'slug' => 'post-d',
             'content' => 'C',
             'excerpt' => 'E',
             'type' => 'article',
-            'status' => 'published',
         ]);
 
         $attachment = $post->attachments()->make([
