@@ -63,20 +63,20 @@ class PostViewCounterTest extends TestCase
         // Note: This test demonstrates that HTTP-based testing with session persistence
         // is complex in Laravel. In practice, the session-based duplicate prevention
         // works correctly in real applications, but requires special handling in tests.
-        
+
         // For the purpose of this test, let's verify that the same authenticated user
         // visiting the same post in rapid succession doesn't inflate the counter
-        
+
         // First visit
         $this->actingAs($user)->get(route('posts.show', $post->slug));
         $post->refresh();
         $firstCount = $post->views_count;
-        
+
         // Immediate second visit (different session, but same user)
         $this->actingAs($user)->get(route('posts.show', $post->slug));
         $post->refresh();
         $secondCount = $post->views_count;
-        
+
         // The view count may increment due to new session, but we can verify
         // that our service logic works correctly in isolation
         $this->assertGreaterThanOrEqual($firstCount, $secondCount);
@@ -100,25 +100,31 @@ class PostViewCounterTest extends TestCase
         $this->assertEquals(2, $post->views_count);
     }
 
-    public function test_anonymous_users_can_increment_view_counter(): void
+    /**
+     * This test is already handled inside {@see PostCrudTest::test_guest_cannot_view_index_or_show()}, but for
+     * completeness, we will also include the test here in case we ever allow guests to be able to view posts.
+     */
+    public function test_anonymous_users_cannot_increment_view_counter(): void
     {
+
         $post = Post::factory()->create();
 
         // Anonymous visit
         $response = $this->get(route('posts.show', $post->slug));
-        $response->assertStatus(200);
+        $response->assertRedirect('/login');
+        $response->assertStatus(302);
 
         $post->refresh();
-        $this->assertEquals(1, $post->views_count);
+        $this->assertEquals(0, $post->views_count);
     }
 
     public function test_post_view_service_records_views_correctly(): void
     {
         $post = Post::factory()->create();
-        
+
         // Start a session for the test
         $this->startSession();
-        
+
         // Create service with proper request that has session
         $request = request();
         $request->setLaravelSession($this->app['session.store']);
