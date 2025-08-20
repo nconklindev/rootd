@@ -1,23 +1,100 @@
-<script setup lang="ts">
-import { Link } from '@inertiajs/vue3'
+<script lang="ts" setup>
+import { Button } from '@/components/ui/button';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Eye } from 'lucide-vue-next';
 
-defineProps<{ post: any }>()
+// Define the layout for this page
+// using InertiaJS Persistent Layouts
+// https://inertiajs.com/pages#persistent-layouts
+defineOptions({ layout: SiteLayout });
+
+// Define props
+const props = defineProps<{ post: any; title: string }>();
+
+// Define the form for adding comments
+const form = useForm({ content: '' });
+
+/**
+ * Submits a comment for the specified post, ensuring that the content field is not empty or whitespace only.
+ * Performs a form reset upon successful submission.
+ *
+ * @return {void} This function does not return a value.
+ */
+function submitComment(): void {
+    if (!form.content || !form.content.trim()) {
+        return;
+    }
+    form.post(route('posts.comments.store', props.post.slug), {
+        preserveScroll: true,
+        onSuccess: () => {
+            form.reset();
+        },
+    });
+}
+
+import CodeBlock from '@/components/CodeBlock.vue';
+import CommentItem from '@/components/CommentItem.vue';
+import SiteLayout from '@/layouts/SiteLayout.vue';
 </script>
 
 <template>
-  <div class="container mx-auto px-6 py-10">
-    <div class="mb-6 flex items-center justify-between">
-      <h1 class="text-2xl font-bold">Post: {{ post.slug }}</h1>
-      <div class="flex items-center gap-3">
-        <Link :href="route('posts.index')" class="text-gray-600 hover:underline">Back</Link>
-        <Link v-if="$page.props.auth?.user && $page.props.auth.user.id === post.author?.id" :href="route('posts.edit', post.slug)" class="rounded bg-gray-800 px-3 py-1 text-white hover:bg-black">Edit</Link>
-      </div>
-    </div>
+    <Head :title="title" />
+    <div class="container mx-auto px-6 py-10">
+        <div class="mb-6 flex items-center justify-between">
+            <h1 class="text-2xl font-bold">Post: {{ title }}</h1>
+            <div class="flex items-center-safe justify-items-center-safe gap-3">
+                <Button as-child variant="link">
+                    <Link :href="route('posts.index')" class="cursor-pointer" prefetch> <ArrowLeft class="mr-2 inline h-4 w-4" />Back </Link>
+                </Button>
 
-    <div class="rounded border p-6">
-      <div class="text-sm text-gray-500">Type: {{ post.type }} · Status: {{ post.status }}</div>
-      <div class="mt-4 whitespace-pre-wrap">{{ post.content }}</div>
-      <div class="mt-6 text-sm text-gray-500">By {{ post.author?.name ?? 'Unknown' }}</div>
+                <Button v-if="$page.props.auth?.user && $page.props.auth.user.id === post.author?.id" as-child size="sm" variant="secondary">
+                    <Link :href="route('posts.edit', post.slug)">Edit</Link>
+                </Button>
+            </div>
+        </div>
+
+        <div class="rounded border bg-card p-6">
+            <!-- Code content -->
+            <div v-if="post.type === 'code'" class="mt-4">
+                <CodeBlock :auto-detect="!post.language" :code="post.content" :language="post.language?.toLowerCase()" />
+            </div>
+
+            <!-- Regular text content -->
+            <div v-else class="mt-4 whitespace-pre-wrap">{{ post.content }}</div>
+            <div v-if="post.type === 'code' && post.body" class="mt-4">{{ post.body }}</div>
+
+            <div class="mt-6 flex items-center justify-between text-sm text-muted-foreground">
+                <div>By {{ post.author?.name ?? 'Unknown' }}</div>
+                <div class="flex items-center gap-2">
+                    <Eye class="h-4 w-4" />
+                    {{ post.views_count ?? 0 }} views
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="mt-10 rounded border bg-card p-6">
+            <h2 class="mb-4 text-xl font-semibold">Comments</h2>
+
+            <div v-if="post.comments?.length" class="space-y-4">
+                <CommentItem v-for="c in post.comments" :key="c.id" :comment="c" :post-slug="post.slug" />
+            </div>
+            <div v-else class="text-sm text-muted-foreground">No comments yet.</div>
+
+            <!-- Add Comment (Auth only) -->
+            <div v-if="$page.props.auth?.user" class="mt-6">
+                <label class="mb-2 block text-sm font-medium">Add a comment</label>
+                <textarea v-model="form.content" class="w-full rounded border bg-background p-3" placeholder="Write your comment..." rows="3" />
+                <div class="mt-3">
+                    <Button :disabled="form.processing || !(form.content && form.content.trim())" size="sm" @click="submitComment"
+                        >Post Comment</Button
+                    >
+                </div>
+            </div>
+            <div v-else class="mt-6 text-sm text-muted-foreground">
+                <Link :href="route('login')" class="text-primary underline-offset-4 hover:underline">Log in</Link>
+                to post a comment.
+            </div>
+        </div>
     </div>
-  </div>
 </template>
