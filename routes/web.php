@@ -14,12 +14,14 @@ Route::get('dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Posts routes
-Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+Route::get('/posts', [PostController::class, 'index'])->middleware(['auth'])->name('posts.index');
 Route::get('/posts/create', [PostController::class, 'create'])->middleware(['auth'])->name('posts.create');
 Route::post('/posts', [PostController::class, 'store'])->middleware(['auth'])->name('posts.store');
-Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+Route::get('/posts/{post}', [PostController::class, 'show'])->middleware(['auth'])->name('posts.show');
 Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->middleware(['auth'])->name('posts.edit');
 Route::put('/posts/{post}', [PostController::class, 'update'])->middleware(['auth'])->name('posts.update');
+Route::post('/posts/{id}/like', [PostController::class, 'like'])->middleware(['auth'])->name('posts.like');
+Route::delete('/posts/{id}/like', [PostController::class, 'unlike'])->middleware(['auth'])->name('posts.unlike');
 Route::delete('/posts/{post}', [PostController::class, 'destroy'])->middleware(['auth'])->name('posts.destroy');
 
 // Comments routes

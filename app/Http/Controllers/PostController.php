@@ -6,6 +6,7 @@ use App\Enum\PostType;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Models\Comment;
+use App\Models\Like;
 use App\Models\Post;
 use App\Services\PostViewService;
 use Illuminate\Http\RedirectResponse;
@@ -30,14 +31,20 @@ class PostController extends Controller
             ->select(['id', 'title', 'slug', 'excerpt', 'type', 'user_id', 'created_at', 'views_count'])
             ->with(['user:id,name'])
             ->withCount('comments', 'likes')
+            ->when(auth()->check(), function ($query) {
+                $query->with(['likes' => function ($q) {
+                    $q->where('user_id', auth()->id());
+                }]);
+            })
             ->paginate(10)
             ->withQueryString();
 
-        // Transform posts to include icon information
+        // Transform posts to include icon information and like status
         $posts->through(function ($post) {
             $postType = PostType::from($post->type->value);
             $post->type_icon = $postType->icon();
             $post->type_label = $postType->label();
+            $post->is_liked = auth()->check() && $post->likes->isNotEmpty();
             return $post;
         });
 
@@ -58,6 +65,14 @@ class PostController extends Controller
         $this->postViewService->recordView($post);
 
         $post->load(['user:id,name']);
+        
+        // Load post likes data for the current user
+        $post->loadCount('likes');
+        if (auth()->check()) {
+            $post->load(['likes' => function ($q) {
+                $q->where('user_id', auth()->id());
+            }]);
+        }
 
         // Load all comments for this post with their authors (include avatar for display)
         $allComments = $post->comments()
@@ -103,6 +118,8 @@ class PostController extends Controller
             'post' => $post->only(['id', 'title', 'slug', 'content', 'body', 'excerpt', 'type', 'views_count']) + [
                     'author' => $post->user?->only(['id', 'name']),
                     'comments' => $rootComments,
+                    'likes_count' => $post->likes_count,
+                    'is_liked' => auth()->check() && $post->likes->isNotEmpty(),
                 ],
             'title' => $title,
         ]);
@@ -173,5 +190,32 @@ class PostController extends Controller
         $post->delete();
 
         return redirect()->route('posts.index');
+    }
+
+    public function like(int $id): RedirectResponse
+    {
+        $post = Post::findOrFail($id);
+        $user = auth()->user();
+
+        // Check if the user already liked this post
+        $existingLike = $post->likes()->where('user_id', $user->id)->first();
+
+        if (!$existingLike) {
+            $like = new Like;
+            $like->user_id = $user->id;
+            $post->likes()->save($like);
+        }
+
+        return back();
+    }
+
+    public function unlike(int $id): RedirectResponse
+    {
+        $post = Post::findOrFail($id);
+        $user = auth()->user();
+
+        $post->likes()->where('user_id', $user->id)->delete();
+
+        return back();
     }
 }

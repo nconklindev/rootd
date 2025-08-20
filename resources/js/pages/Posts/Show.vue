@@ -1,7 +1,11 @@
 <script lang="ts" setup>
+import CodeBlock from '@/components/CodeBlock.vue';
+import CommentItem from '@/components/CommentItem.vue';
 import { Button } from '@/components/ui/button';
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Eye } from 'lucide-vue-next';
+import SiteLayout from '@/layouts/SiteLayout.vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Eye, Heart, MessageSquareMoreIcon } from 'lucide-vue-next';
+import { computed } from 'vue';
 
 // Define the layout for this page
 // using InertiaJS Persistent Layouts
@@ -13,6 +17,10 @@ const props = defineProps<{ post: any; title: string }>();
 
 // Define the form for adding comments
 const form = useForm({ content: '' });
+
+const viewsCount = computed(() => props.post.views_count ?? 0);
+const commentsCount = computed(() => props.post.comments_count ?? 0);
+const likesCount = computed(() => props.post.likes_count ?? 0);
 
 /**
  * Submits a comment for the specified post, ensuring that the content field is not empty or whitespace only.
@@ -32,9 +40,23 @@ function submitComment(): void {
     });
 }
 
-import CodeBlock from '@/components/CodeBlock.vue';
-import CommentItem from '@/components/CommentItem.vue';
-import SiteLayout from '@/layouts/SiteLayout.vue';
+const toggleLike = (): void => {
+    if (props.post.is_liked === true) {
+        // Unlike the post
+        router.delete(route('posts.unlike', { id: props.post.id }), {
+            preserveScroll: true,
+        });
+    } else {
+        // Like the post
+        router.post(
+            route('posts.like', { id: props.post.id }),
+            {},
+            {
+                preserveScroll: true,
+            },
+        );
+    }
+};
 </script>
 
 <template>
@@ -44,7 +66,10 @@ import SiteLayout from '@/layouts/SiteLayout.vue';
             <h1 class="text-2xl font-bold">Post: {{ title }}</h1>
             <div class="flex items-center-safe justify-items-center-safe gap-3">
                 <Button as-child variant="link">
-                    <Link :href="route('posts.index')" class="cursor-pointer" prefetch> <ArrowLeft class="mr-2 inline h-4 w-4" />Back </Link>
+                    <Link :href="route('posts.index')" class="cursor-pointer" prefetch>
+                        <ArrowLeft class="mr-2 inline h-4 w-4" />
+                        Back
+                    </Link>
                 </Button>
 
                 <Button v-if="$page.props.auth?.user && $page.props.auth.user.id === post.author?.id" as-child size="sm" variant="secondary">
@@ -65,9 +90,32 @@ import SiteLayout from '@/layouts/SiteLayout.vue';
 
             <div class="mt-6 flex items-center justify-between text-sm text-muted-foreground">
                 <div>By {{ post.author?.name ?? 'Unknown' }}</div>
-                <div class="flex items-center gap-2">
-                    <Eye class="h-4 w-4" />
-                    {{ post.views_count ?? 0 }} views
+                <div class="flex space-x-4">
+                    <div class="flex items-center gap-2">
+                        <Eye class="h-4 w-4" />
+                        {{ viewsCount }} {{ viewsCount === 1 ? 'view' : 'views' }}
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <MessageSquareMoreIcon class="h-4 w-4" />
+                        {{ commentsCount }} {{ commentsCount === 1 ? 'comment' : 'comments' }}
+                    </div>
+                    <button
+                        v-if="$page.props.auth?.user"
+                        class="group flex items-center gap-2 transition-colors hover:cursor-pointer hover:text-primary"
+                        @click="toggleLike"
+                    >
+                        <Heart
+                            :class="[
+                                'h-4 w-4 transition-all duration-200',
+                                props.post.is_liked ? 'fill-red-500 text-red-500' : 'text-muted-foreground hover:text-red-500',
+                            ]"
+                        />
+                        {{ likesCount }} {{ likesCount === 1 ? 'like' : 'likes' }}
+                    </button>
+                    <div v-else class="flex items-center gap-2 text-muted-foreground">
+                        <Heart class="h-4 w-4" />
+                        {{ likesCount }} {{ likesCount === 1 ? 'like' : 'likes' }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -87,8 +135,8 @@ import SiteLayout from '@/layouts/SiteLayout.vue';
                 <textarea v-model="form.content" class="w-full rounded border bg-background p-3" placeholder="Write your comment..." rows="3" />
                 <div class="mt-3">
                     <Button :disabled="form.processing || !(form.content && form.content.trim())" size="sm" @click="submitComment"
-                        >Post Comment</Button
-                    >
+                        >Post Comment
+                    </Button>
                 </div>
             </div>
             <div v-else class="mt-6 text-sm text-muted-foreground">
