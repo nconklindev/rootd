@@ -9,11 +9,8 @@ class PostPolicy
 {
     public function view(?User $user, Post $post): bool
     {
-        if ($post->status === 'published') {
-            return true;
-        }
-
-        return $user?->id === $post->user_id;
+        // All posts are now viewable by everyone since there's no status
+        return true;
     }
 
     public function create(User $user): bool

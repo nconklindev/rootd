@@ -10,24 +10,17 @@ class UpdatePostRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return (bool) $this->user();
+        return (bool)$this->user();
     }
 
     public function rules(): array
     {
-        $post = $this->route('post');
-
         return [
-            'slug' => [
-                'required',
-                'alpha_dash',
-                'max:255',
-                Rule::unique('posts', 'slug')->ignore($post?->id),
-            ],
+            'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string'],
-            'excerpt' => ['nullable', 'string', 'max:500'],
+            'body' => ['nullable', 'string'],
+            'excerpt' => ['nullable', 'string', 'max:255'],
             'type' => ['nullable', Rule::enum(PostType::class)],
-            'status' => ['nullable', 'in:draft,published'],
         ];
     }
 }

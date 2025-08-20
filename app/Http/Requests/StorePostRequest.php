@@ -10,24 +10,17 @@ class StorePostRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return (bool) $this->user();
+        return (bool)$this->user();
     }
 
     public function rules(): array
     {
         return [
-            'slug' => ['required', 'alpha_dash', 'max:255', 'unique:posts,slug'],
+            'title' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string'],
-            'excerpt' => ['nullable', 'string', 'max:500'],
+            'body' => ['nullable', 'string'],
+            'excerpt' => ['nullable', 'string', 'max:255'],
             'type' => ['nullable', Rule::enum(PostType::class)],
-            'status' => ['nullable', 'in:draft,published'],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'slug.required' => 'Please provide a unique slug for your post.',
         ];
     }
 }

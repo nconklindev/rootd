@@ -14,11 +14,11 @@ class PostCrudTest extends TestCase
     {
         $user = User::factory()->create();
         $post = $user->posts()->create([
+            'title' => 'Hello World',
             'slug' => 'hello-world',
             'content' => 'Post content',
             'excerpt' => 'Excerpt',
             'type' => 'article',
-            'status' => 'published',
         ]);
 
         $this->get(route('posts.index'))->assertOk();
@@ -36,16 +36,16 @@ class PostCrudTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)->post(route('posts.store'), [
-            'slug' => 'my-post',
+            'title' => 'My First Post',
+            'slug' => 'my-first-post',
             'content' => 'Body',
             'excerpt' => 'Short',
             'type' => 'article',
-            'status' => 'draft',
         ]);
 
         $response->assertRedirect();
         $this->assertDatabaseHas('posts', [
-            'slug' => 'my-post',
+            'slug' => 'my-first-post',
             'user_id' => $user->id,
         ]);
     }
@@ -56,35 +56,34 @@ class PostCrudTest extends TestCase
         $other = User::factory()->create();
 
         $post = $owner->posts()->create([
-            'slug' => 'edit-me',
+            'title' => 'My First Post',
+            'slug' => 'my-first-post',
             'content' => 'A',
             'excerpt' => 'E',
             'type' => 'article',
-            'status' => 'draft',
         ]);
 
         $this->actingAs($other)
             ->put(route('posts.update', $post), [
-                'slug' => 'edit-me',
+                'title' => 'My First Post',
+                'slug' => 'my-first-post',
                 'content' => 'B',
                 'excerpt' => 'E',
                 'type' => 'article',
-                'status' => 'draft',
             ])->assertForbidden();
 
         $this->actingAs($owner)
             ->put(route('posts.update', $post), [
-                'slug' => 'edit-me',
+                'title' => 'My First Post',
+                'slug' => 'my-first-post',
                 'content' => 'B',
                 'excerpt' => 'E',
                 'type' => 'article',
-                'status' => 'published',
             ])->assertRedirect();
 
         $this->assertDatabaseHas('posts', [
-            'slug' => 'edit-me',
+            'slug' => 'my-first-post',
             'content' => 'B',
-            'status' => 'published',
         ]);
     }
 }

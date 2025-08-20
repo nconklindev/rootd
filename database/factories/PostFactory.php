@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class PostFactory extends Factory
 {
@@ -14,16 +15,19 @@ class PostFactory extends Factory
 
     public function definition(): array
     {
+        $title = $this->faker->sentence(6);
+
         return [
-            'slug' => $this->faker->slug(),
-            'content' => $this->faker->sentences(10, true),
-            'excerpt' => $this->faker->sentence(),
+            'title' => $title,
+            'slug' => Str::slug($title),
+            'content' => $this->faker->paragraphs(random_int(2, 10), true),
+            'excerpt' => $this->faker->sentences(4, true),
             'type' => $this->faker->randomElement(PostType::cases())->value,
-            'status' => $this->faker->randomElement(['draft', 'published']),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
 
             'user_id' => User::factory(),
         ];
     }
+
 }
