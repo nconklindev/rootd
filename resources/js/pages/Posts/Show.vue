@@ -25,8 +25,6 @@ const created_at_human = computed(() => {
     return date.toLocaleDateString('en-US', options);
 });
 
-console.log(props.post);
-
 // Define the form for adding comments
 const form = useForm({ content: '' });
 
@@ -107,7 +105,12 @@ const toggleLike = (): void => {
                 <div class="flex items-center space-x-2">
                     <div>By {{ post.author?.name ?? 'Unknown' }}</div>
                     <span>&bullet;</span>
-                    <div v-for="tag in post.tags" :key="tag.name" :style="{ backgroundColor: tag.color + '20', borderColor: tag.color, color: tag.color }" class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset">
+                    <div
+                        v-for="tag in post.tags"
+                        :key="tag.name"
+                        :style="{ backgroundColor: tag.color + '20', borderColor: tag.color, color: tag.color }"
+                        class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset"
+                    >
                         {{ tag.name }}
                     </div>
                 </div>
