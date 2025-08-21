@@ -10,21 +10,21 @@ import { Link, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 interface PostType {
-  value: string;
-  label: string;
+    value: string;
+    label: string;
 }
 
-const props = defineProps<{ 
-  post: any;
-  postTypes: PostType[];
-}>()
+const props = defineProps<{
+    post: any;
+    postTypes: PostType[];
+}>();
 
 const form = useForm({
-  title: props.post.title || '',
-  content: props.post.content || '',
-  body: props.post.body || '',
-  excerpt: props.post.excerpt || '',
-  type: props.post.type || 'article',
+    title: props.post.title || '',
+    content: props.post.content || '',
+    body: props.post.body || '',
+    excerpt: props.post.excerpt || '',
+    type: props.post.type || 'article',
 });
 
 const titlePlaceholder = computed(() => {
@@ -119,12 +119,14 @@ function submit(): void {
 
                     <!-- Short Summary -->
                     <div v-if="form.type === 'code'">
-                        <label class="mb-1 block text-sm font-medium" for="description">Short Summary <span class="text-muted-foreground">(Optional)</span></label>
-                        <Input 
-                            id="description" 
-                            v-model="form.excerpt" 
+                        <label class="mb-1 block text-sm font-medium" for="description"
+                            >Short Summary <span class="text-muted-foreground">(Optional)</span></label
+                        >
+                        <Input
+                            id="description"
+                            v-model="form.excerpt"
                             placeholder="Brief one-line summary for previews and search results..."
-                            maxlength="255" 
+                            maxlength="255"
                         />
                         <FormDescription message="This appears in post previews and search results. If empty, we'll auto-generate from your code." />
                         <InputError :message="form.errors.excerpt" />
