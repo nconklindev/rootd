@@ -98,7 +98,7 @@ class Post extends Model
 
         // Generate excerpt with custom length (default is 100 words)
         $excerpt = Str::words($cleanContent, 25, '...');
-        
+
         // Ensure excerpt doesn't exceed database column limit (255 characters)
         return Str::limit($excerpt, 252, '...');
     }

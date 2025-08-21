@@ -21,6 +21,8 @@ class StorePostRequest extends FormRequest
             'body' => ['nullable', 'string'],
             'excerpt' => ['nullable', 'string', 'max:255'],
             'type' => ['nullable', Rule::enum(PostType::class)],
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['string', 'max:50'],
         ];
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Requests\UpdatePostRequest;
 use App\Models\Comment;
 use App\Models\Like;
 use App\Models\Post;
+use App\Models\Tag;
 use App\Services\PostViewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -64,8 +65,8 @@ class PostController extends Controller
         // Record the view (this will handle duplicate prevention)
         $this->postViewService->recordView($post);
 
-        $post->load(['user:id,name']);
-        
+        $post->load(['user:id,name', 'tags']);
+
         // Load post likes data for the current user
         $post->loadCount('likes');
         if (auth()->check()) {
@@ -115,9 +116,10 @@ class PostController extends Controller
         $title = $post->title ?? Str::headline($post->slug);
 
         return Inertia::render('Posts/Show', [
-            'post' => $post->only(['id', 'title', 'slug', 'content', 'body', 'excerpt', 'type', 'views_count']) + [
+            'post' => $post->only(['id', 'title', 'slug', 'content', 'body', 'excerpt', 'type', 'views_count', 'created_at']) + [
                     'author' => $post->user?->only(['id', 'name']),
                     'comments' => $rootComments,
+                    'tags' => $post->tags->map(fn($tag) => $tag->only(['name', 'color']))->toArray(),
                     'likes_count' => $post->likes_count,
                     'is_liked' => auth()->check() && $post->likes->isNotEmpty(),
                 ],
@@ -139,6 +141,13 @@ class PostController extends Controller
             'type' => $data['type'] ?? 'article',
         ]);
 
+        // Handle tags - create if they don't exist, then attach
+        $tagNames = $data['tags'] ?? [];
+        if (!empty($tagNames)) {
+            $tagIds = $this->createOrFindTags($tagNames);
+            $post->tags()->attach($tagIds);
+        }
+
         return redirect()->route('posts.show', $post);
     }
 
@@ -154,12 +163,51 @@ class PostController extends Controller
         ]);
     }
 
+    /**
+     * Create or find tags by name and return their IDs.
+     *
+     * @param array<string> $tagNames
+     * @return array<int>
+     */
+    private function createOrFindTags(array $tagNames): array
+    {
+        $tagIds = [];
+
+        foreach ($tagNames as $tagName) {
+            // Clean up the tag name
+            $cleanName = trim($tagName);
+            if (empty($cleanName)) {
+                continue;
+            }
+
+            // Find existing tag or create new one
+            $tag = Tag::firstOrCreate(
+                ['name' => $cleanName],
+                [
+                    'name' => $cleanName,
+                    'slug' => Str::slug($cleanName),
+                    'color' => sprintf('#%06X', mt_rand(0, 0xFFFFFF)), // Random color
+                    'description' => '', // Empty description for auto-created tags
+                ]
+            );
+
+            $tagIds[] = $tag->id;
+        }
+
+        return $tagIds;
+    }
+
     public function edit(Post $post): Response
     {
         $this->authorize('update', $post);
 
+        // Load existing tags for the post
+        $post->load('tags');
+
         return Inertia::render('Posts/Edit', [
-            'post' => $post->only(['title', 'slug', 'content', 'excerpt', 'type']),
+            'post' => $post->only(['title', 'slug', 'content', 'excerpt', 'type']) + [
+                    'tags' => $post->tags->pluck('name')->toArray(),
+                ],
             'postTypes' => collect(PostType::cases())->map(fn($type) => [
                 'value' => $type->value,
                 'label' => ucfirst($type->value),
@@ -176,9 +224,19 @@ class PostController extends Controller
         $post->update([
             'title' => $data['title'],
             'content' => $data['content'],
+            'body' => $data['body'] ?? null,
             'excerpt' => $data['excerpt'] ?? null,
             'type' => $data['type'] ?? 'article',
         ]);
+
+        // Handle tags - sync existing tags with new ones
+        $tagNames = $data['tags'] ?? [];
+        if (!empty($tagNames)) {
+            $tagIds = $this->createOrFindTags($tagNames);
+            $post->tags()->sync($tagIds); // sync() replaces all current tags
+        } else {
+            $post->tags()->detach(); // Remove all tags if none provided
+        }
 
         return redirect()->route('posts.show', $post);
     }
