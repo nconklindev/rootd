@@ -168,6 +168,7 @@ class ModelMassAssignmentTest extends TestCase
 
     public function test_like_is_not_mass_assignable(): void
     {
+        // This has to come before the create statement
         $this->expectException(MassAssignmentException::class);
 
         Like::create([
