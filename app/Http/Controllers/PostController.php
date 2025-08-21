@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enum\PostType;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
+use App\Models\Category;
 use App\Models\Comment;
 use App\Models\Like;
 use App\Models\Post;
@@ -139,6 +140,7 @@ class PostController extends Controller
             'body' => $data['body'] ?? null,
             'excerpt' => $data['excerpt'] ?? null,
             'type' => $data['type'] ?? 'article',
+            'category_id' => $data['category_id'] ?? null,
         ]);
 
         // Handle tags - create if they don't exist, then attach
@@ -160,6 +162,15 @@ class PostController extends Controller
                 'value' => $type->value,
                 'label' => ucfirst($type->value),
             ])->sortBy('label')->values(),
+            'categories' => Category::select(['id', 'name', 'slug', 'color'])
+                ->orderBy('name')
+                ->get()
+                ->map(fn($category) => [
+                    'value' => $category->id,
+                    'label' => $category->name,
+                    'slug' => $category->slug,
+                    'color' => $category->color,
+                ]),
         ]);
     }
 
