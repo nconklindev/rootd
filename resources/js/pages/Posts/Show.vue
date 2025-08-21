@@ -15,6 +15,18 @@ defineOptions({ layout: SiteLayout });
 // Define props
 const props = defineProps<{ post: any; title: string }>();
 
+const created_at_human = computed(() => {
+    const date = new Date(props.post.created_at);
+    const options: Intl.DateTimeFormatOptions = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    };
+    return date.toLocaleDateString('en-US', options);
+});
+
+console.log(props.post);
+
 // Define the form for adding comments
 const form = useForm({ content: '' });
 
@@ -63,7 +75,10 @@ const toggleLike = (): void => {
     <Head :title="title" />
     <div class="container mx-auto px-6 py-10">
         <div class="mb-6 flex items-center justify-between">
-            <h1 class="text-2xl font-bold">Post: {{ title }}</h1>
+            <div class="flex flex-col">
+                <h1 class="text-2xl leading-tight font-bold tracking-tight">{{ title }}</h1>
+                <h2 class="text-sm leading-tight tracking-tight text-muted-foreground">{{ created_at_human }}</h2>
+            </div>
             <div class="flex items-center-safe justify-items-center-safe gap-3">
                 <Button as-child variant="link">
                     <Link :href="route('posts.index')" class="cursor-pointer" prefetch>
@@ -85,11 +100,17 @@ const toggleLike = (): void => {
             </div>
 
             <!-- Regular text content -->
-            <div v-else class="mt-4 whitespace-pre-wrap">{{ post.content }}</div>
+            <div v-else class="whitespace-pre-wrap">{{ post.content }}</div>
             <div v-if="post.type === 'code' && post.body" class="mt-4">{{ post.body }}</div>
 
             <div class="mt-6 flex items-center justify-between text-sm text-muted-foreground">
-                <div>By {{ post.author?.name ?? 'Unknown' }}</div>
+                <div class="flex items-center space-x-2">
+                    <div>By {{ post.author?.name ?? 'Unknown' }}</div>
+                    <span>&bullet;</span>
+                    <div v-for="tag in post.tags" :key="tag.name" :style="{ backgroundColor: tag.color + '20', borderColor: tag.color, color: tag.color }" class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset">
+                        {{ tag.name }}
+                    </div>
+                </div>
                 <div class="flex space-x-4">
                     <div class="flex items-center gap-2">
                         <Eye class="h-4 w-4" />
