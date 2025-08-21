@@ -20,9 +20,17 @@ interface PostType {
     label: string;
 }
 
+interface Category {
+    value: number;
+    label: string;
+    slug: string;
+    color: string;
+}
+
 // Define props
-defineProps<{
+const props = defineProps<{
     postTypes: PostType[];
+    categories: Category[];
 }>();
 
 // Define the form for submitting the post
@@ -30,6 +38,7 @@ const form = useForm({
     title: '',
     content: '',
     excerpt: '',
+    category_id: '',
     body: '',
     type: 'article',
     file: null,
@@ -92,19 +101,39 @@ function submit(): void {
 
 <template>
     <Head title="Create Post" />
-    <div class="container mx-auto px-6 py-10">
+    <div class="container mx-auto min-w-0 px-6 py-10">
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold">New Post</h1>
             <Link :href="route('posts.index')" class="text-primary underline-offset-4 hover:underline">Back</Link>
         </div>
 
-        <div class="rounded border bg-card p-6">
+        <div class="overflow-x-hidden rounded border bg-card p-6">
             <form class="space-y-5" @submit.prevent="submit">
                 <!-- Title -->
-                <div>
-                    <label class="mb-1 block text-sm font-medium" for="title">Title</label>
-                    <Input id="title" v-model="form.title" :placeholder="titlePlaceholder" required />
-                    <InputError :message="form.errors.title" />
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
+                    <div class="md:col-span-2">
+                        <label class="mb-1 block text-sm font-medium" for="title">Title</label>
+                        <Input id="title" v-model="form.title" :placeholder="titlePlaceholder" required />
+                        <InputError :message="form.errors.title" />
+                    </div>
+
+                    <div class="w-full">
+                        <label class="mb-1 block text-sm font-medium" for="category">Category</label>
+                        <Select id="category" v-model="form.category_id" class="w-full" size="sm">
+                            <SelectTrigger class="w-full max-w-full min-w-0">
+                                <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="category in props.categories" :key="category.value" :value="category.value.toString()">
+                                    <div class="flex items-center gap-2">
+                                        <div :style="{ backgroundColor: category.color }" class="h-3 w-3 rounded-full"></div>
+                                        {{ category.label }}
+                                    </div>
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <InputError :message="form.errors.category_id" />
+                    </div>
                 </div>
 
                 <!-- Type -->
@@ -115,7 +144,13 @@ function submit(): void {
                             <SelectTrigger class="w-full">
                                 <SelectValue placeholder="Select a type" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent
+                                :side-offset="4"
+                                align="start"
+                                avoid-collisions
+                                class="min-w-[--reka-select-trigger-width]"
+                                position="popper"
+                            >
                                 <SelectItem v-for="type in postTypes" :key="type.value" :value="type.value">
                                     {{ type.label }}
                                 </SelectItem>
@@ -131,7 +166,7 @@ function submit(): void {
                             <SelectTrigger class="w-full">
                                 <SelectValue placeholder="Select a language" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent :side-offset="4" align="start" class="max-w-[200px] min-w-[--reka-select-trigger-width]" position="popper">
                                 <SelectItem v-for="language in languages" :key="language.value" :value="language.label">{{
                                     language.label
                                 }}</SelectItem>
