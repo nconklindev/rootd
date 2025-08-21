@@ -19,8 +19,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        // Seed posts, comments, and attachments
+        // Seed categories first, then posts, comments, and attachments
         $this->call([
+            CategorySeeder::class,
             PostSeeder::class,
         ]);
     }
