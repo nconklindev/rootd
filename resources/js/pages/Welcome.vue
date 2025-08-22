@@ -14,15 +14,15 @@ defineOptions({ layout: SiteLayout });
     <section class="px-6 py-8 md:py-20">
         <div class="container mx-auto">
             <div class="mx-auto max-w-4xl justify-center text-center">
-                <h2 class="mb-6 text-[8rem] font-bold tracking-tight text-shadow-purple-600 text-shadow-xs">
+                <h2 class="mb-6 text-6xl font-bold tracking-tight text-shadow-purple-600 text-shadow-xs md:text-[8rem]">
                     root.d
                     <span
-                        class="mt-1 block bg-gradient-to-r from-purple-600 via-purple-500 via-50% to-purple-400 bg-clip-text text-center text-4xl font-semibold text-transparent text-shadow-none"
+                        class="mt-1 block bg-gradient-to-r from-purple-600 via-purple-500 via-50% to-purple-400 bg-clip-text text-center text-2xl font-semibold text-transparent text-shadow-none md:text-4xl"
                     >
                         The Social Platform for Security</span
                     >
                 </h2>
-                <p class="mb-8 text-lg leading-relaxed text-muted-foreground">
+                <p class="text-md mb-8 leading-relaxed text-muted-foreground">
                     Share files, scripts, and knowledge securely within your security team. Collaborate, learn, and strengthen your cybersecurity
                     arsenal together.
                 </p>
