@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Enum\PostType;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
 
@@ -29,7 +30,6 @@ class Post extends Model
         'excerpt',
         'type',
         'views_count',
-        'category_id',
     ];
 
     protected $appends = ['created_at_human'];
@@ -74,10 +74,10 @@ class Post extends Model
         $i = 2;
 
         while (static::query()
-            ->when($ignoreId !== null, fn($q) => $q->where('id', '!=', $ignoreId))
+            ->when($ignoreId !== null, fn ($q) => $q->where('id', '!=', $ignoreId))
             ->where('slug', $slug)
             ->exists()) {
-            $slug = $base . '-' . $i;
+            $slug = $base.'-'.$i;
             $i++;
         }
 
@@ -145,6 +145,24 @@ class Post extends Model
     public function likes(): MorphMany
     {
         return $this->morphMany(Like::class, 'likeable');
+    }
+
+    /**
+     * Scope a query to order posts by view count (most viewed first)
+     */
+    #[Scope]
+    protected function mostViewed(Builder $query): void
+    {
+        $query->orderBy('views_count', 'desc');
+    }
+
+    /**
+     * Scope a query to limit results to top N posts
+     */
+    #[Scope]
+    protected function topViewed(Builder $query, int $limit = 10): void
+    {
+        $query->take($limit);
     }
 
     protected function casts(): array
