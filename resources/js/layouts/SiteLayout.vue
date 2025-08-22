@@ -37,11 +37,18 @@ const siteData = page.props.siteData as { categories: any[] };
 const auth = page.props.auth as { user?: any };
 
 const isSidebarItemActive = (item: any) => {
-    // Use a component based check to determine what the active item is
-    // This is a pain in the ass, but it works and allows for strict checking instead of having Posts be active
-    // and Create Post be active
-    // Add a `component` property to any navigation items that are added
-    return page.component === item.component;
+    // First, check for exact component matches (higher precedence)
+    if (page.component === item.component) {
+        return true;
+    }
+
+    // Special handling for Posts - should be active on Posts/Index and Posts/Show only
+    // NOT on Posts/Create (which should match "Create Post" instead)
+    if (item.routeName === 'posts.index') {
+        return page.component === 'Posts/Index' || page.component === 'Posts/Show';
+    }
+
+    return false;
 };
 
 // Determine if sidebar should be shown
@@ -88,7 +95,7 @@ const toggleMobileSidebar = () => {
 
 // Navigation items with consistent route handling
 const mainNavItems = [
-    { href: '/', icon: Home, label: 'Home', routeName: 'home' },
+    { href: '/', icon: Home, label: 'Home', routeName: 'home', component: 'Welcome' },
     { href: route('posts.index'), icon: FileText, label: 'Posts', routeName: 'posts.index', component: 'Posts/Index' },
     { href: '/discussions', icon: MessageSquare, label: 'Discussions', routeName: 'discussions', component: 'Discussions/Index' },
 ];
@@ -96,8 +103,8 @@ const mainNavItems = [
 const myStuffItems = [
     { href: '/dashboard', icon: User, label: 'Dashboard', routeName: 'dashboard', component: 'Dashboard' },
     { href: '/feed', icon: Rss, label: 'Feed', routeName: 'feed', component: 'Feed' },
-    { href: route('posts.create'), icon: PlusCircle, label: 'Create Post', routeName: 'posts.create', component: 'Posts/Create' },
-    { href: '/my-posts', icon: FileText, label: 'My Posts', routeName: 'my-posts' },
+    { href: '/posts/create', icon: PlusCircle, label: 'Create Post', routeName: 'posts.create', component: 'Posts/Create' },
+    { href: '/posts/me', icon: FileText, label: 'My Posts', routeName: 'posts.me', component: 'Posts/MyPosts' },
 ];
 
 // Helper function to check if navigation item is active
