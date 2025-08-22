@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from '@/components/ui/navigation-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { useAppearance } from '@/composables/useAppearance';
@@ -16,6 +18,7 @@ import {
     Monitor,
     Moon,
     PlusCircle,
+    Rss,
     Search,
     Settings,
     Shield,
@@ -23,7 +26,7 @@ import {
     TrendingUp,
     User,
 } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     title: String,
@@ -32,6 +35,24 @@ const props = defineProps({
 const page = usePage();
 const siteData = page.props.siteData as { categories: any[] };
 const auth = page.props.auth as { user?: any };
+
+const isSidebarItemActive = (item: any) => {
+    // Use a component based check to determine what the active item is
+    // This is a pain in the ass, but it works and allows for strict checking instead of having Posts be active
+    // and Create Post be active
+    // Add a `component` property to any navigation items that are added
+    return page.component === item.component;
+};
+
+// Determine if sidebar should be shown
+const showSidebar = computed(() => {
+    // Don't show sidebar on welcome page
+    if (page.url === '/' && page.component === 'Welcome') {
+        return false;
+    }
+    // Show sidebar on all other pages
+    return true;
+});
 
 // Dark mode functionality
 const { appearance, updateAppearance } = useAppearance();
@@ -65,18 +86,21 @@ const toggleMobileSidebar = () => {
     showMobileSidebar.value = !showMobileSidebar.value;
 };
 
-// Navigation items
+// Navigation items with consistent route handling
 const mainNavItems = [
-    { href: '/', icon: Home, label: 'Home' },
-    { href: route('posts.index'), icon: FileText, label: 'Posts' },
-    { href: '/discussions', icon: MessageSquare, label: 'Discussions' },
+    { href: '/', icon: Home, label: 'Home', routeName: 'home' },
+    { href: route('posts.index'), icon: FileText, label: 'Posts', routeName: 'posts.index', component: 'Posts/Index' },
+    { href: '/discussions', icon: MessageSquare, label: 'Discussions', routeName: 'discussions', component: 'Discussions/Index' },
 ];
 
 const myStuffItems = [
-    { href: '/dashboard', icon: User, label: 'Dashboard' },
-    { href: route('posts.create'), icon: PlusCircle, label: 'Create Post' },
-    { href: '/my-posts', icon: FileText, label: 'My Posts' },
+    { href: '/dashboard', icon: User, label: 'Dashboard', routeName: 'dashboard', component: 'Dashboard' },
+    { href: '/feed', icon: Rss, label: 'Feed', routeName: 'feed', component: 'Feed' },
+    { href: route('posts.create'), icon: PlusCircle, label: 'Create Post', routeName: 'posts.create', component: 'Posts/Create' },
+    { href: '/my-posts', icon: FileText, label: 'My Posts', routeName: 'my-posts' },
 ];
+
+// Helper function to check if navigation item is active
 
 const quickActionItems = auth.user
     ? [{ href: '/help', icon: HelpCircle, label: 'Help & Support' }]
@@ -98,13 +122,30 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
             <div class="flex h-full items-center justify-between px-6">
                 <!-- Left side: Logo and sidebar toggle -->
                 <div class="flex items-center space-x-4">
-                    <Button class="h-8 w-8 lg:hidden" size="icon" variant="ghost" @click="toggleMobileSidebar">
+                    <Button v-if="showSidebar" class="h-8 w-8 lg:hidden" size="icon" variant="ghost" @click="toggleMobileSidebar">
                         <Menu class="h-5 w-5" />
                     </Button>
                     <Link :href="route('home')" class="flex items-center space-x-3">
                         <Shield class="h-7 w-7 text-primary" />
                         <h1 class="text-xl font-bold">root.d</h1>
                     </Link>
+                </div>
+
+                <!-- Center items -->
+                <div v-if="auth.user" class="flex items-center justify-center space-x-2">
+                    <NavigationMenu>
+                        <NavigationMenuList>
+                            <NavigationMenuItem>
+                                <NavigationMenuLink :href="route('posts.index')">Browse</NavigationMenuLink>
+                            </NavigationMenuItem>
+                            <NavigationMenuItem>
+                                <NavigationMenuLink href="#">Calendar</NavigationMenuLink>
+                            </NavigationMenuItem>
+                            <NavigationMenuItem>
+                                <NavigationMenuLink href="#">Wiki</NavigationMenuLink>
+                            </NavigationMenuItem>
+                        </NavigationMenuList>
+                    </NavigationMenu>
                 </div>
 
                 <!-- Right side: Actions -->
@@ -163,8 +204,9 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
 
         <!-- Sidebar -->
         <aside
+            v-if="showSidebar"
             :class="[
-                'fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] w-64 transform transition-transform duration-300 ease-in-out',
+                'fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] w-70 transform transition-transform duration-300 ease-in-out',
                 'border-r border-border bg-background',
                 'lg:translate-x-0',
                 showMobileSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
@@ -178,7 +220,7 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
                         :key="item.href"
                         :class="[
                             'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                            $page.url === item.href || ($page.url.startsWith(item.href) && item.href !== '/')
+                            isSidebarItemActive(item)
                                 ? 'bg-primary text-primary-foreground'
                                 : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                         ]"
@@ -198,7 +240,7 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
                             :key="item.href"
                             :class="[
                                 'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                                $page.url === item.href
+                                isSidebarItemActive(item)
                                     ? 'bg-primary text-primary-foreground'
                                     : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                             ]"
@@ -223,7 +265,7 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
                             <div :style="{ backgroundColor: category.color }" class="h-3 w-3 flex-shrink-0 rounded-full" />
                             <span class="flex-1 truncate">{{ category.name }}</span>
                             <span v-if="category.post_count > 0" class="text-xs">
-                                {{ category.post_count }}
+                                <Badge class="bg-accent text-accent-foreground">{{ category.post_count }}</Badge>
                             </span>
                         </Link>
                         <Link
@@ -257,7 +299,7 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
                     <Link
                         :class="[
                             'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                            $page.url === route('profile.edit')
+                            route().current('profile.*') || route().current('settings.*')
                                 ? 'bg-primary text-primary-foreground'
                                 : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                         ]"
@@ -271,10 +313,10 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
         </aside>
 
         <!-- Mobile Sidebar Overlay -->
-        <div v-if="showMobileSidebar" class="fixed inset-0 z-30 bg-black/50 lg:hidden" @click="showMobileSidebar = false" />
+        <div v-if="showMobileSidebar && showSidebar" class="fixed inset-0 z-30 bg-black/50 lg:hidden" @click="showMobileSidebar = false" />
 
         <!-- Main Content -->
-        <main :class="['pt-16 transition-all duration-300 ease-in-out', 'lg:pl-64']">
+        <main :class="['pt-16 transition-all duration-300 ease-in-out', showSidebar ? 'lg:pl-70' : '']">
             <slot />
         </main>
     </div>
