@@ -24,7 +24,7 @@ defineProps<{ posts: any; can: any }>();
 </script>
 
 <template>
-    <Head :title="Posts" />
+    <Head title="Posts" />
     <div class="container mx-auto px-6 py-10">
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold">Posts</h1>
