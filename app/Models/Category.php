@@ -51,10 +51,10 @@ class Category extends Model
         $i = 2;
 
         while (static::query()
-            ->when($ignoreId !== null, fn($q) => $q->where('id', '!=', $ignoreId))
+            ->when($ignoreId !== null, fn ($q) => $q->where('id', '!=', $ignoreId))
             ->where('slug', $slug)
             ->exists()) {
-            $slug = $base . '-' . $i;
+            $slug = $base.'-'.$i;
             $i++;
         }
 
