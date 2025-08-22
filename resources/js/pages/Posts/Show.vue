@@ -101,27 +101,36 @@ const toggleLike = (): void => {
             <div v-else class="whitespace-pre-wrap">{{ post.content }}</div>
             <div v-if="post.type === 'code' && post.body" class="mt-4">{{ post.body }}</div>
 
-            <div class="mt-6 flex items-center justify-between text-sm text-muted-foreground">
-                <div class="flex items-center space-x-2">
-                    <div>By {{ post.author?.name ?? 'Unknown' }}</div>
-                    <span>&bullet;</span>
+            <!-- Mobile-optimized post metadata -->
+            <div class="mt-6 space-y-4 text-sm text-muted-foreground">
+                <!-- Author row -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span>By {{ post.author?.name ?? 'Unknown' }}</span>
+                    </div>
+                </div>
+
+                <!-- Tags row (if any) -->
+                <div v-if="post.tags.length > 0" class="flex flex-wrap gap-2">
                     <div
                         v-for="tag in post.tags"
                         :key="tag.name"
                         :style="{ backgroundColor: tag.color + '20', borderColor: tag.color, color: tag.color }"
-                        class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset"
+                        class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset"
                     >
                         {{ tag.name }}
                     </div>
                 </div>
-                <div class="flex space-x-4">
+
+                <!-- Stats row - mobile optimized -->
+                <div class="flex flex-wrap items-center gap-4 border-t border-border pt-4">
                     <div class="flex items-center gap-2">
                         <Eye class="h-4 w-4" />
-                        {{ viewsCount }} {{ viewsCount === 1 ? 'view' : 'views' }}
+                        <span class="text-xs sm:text-sm">{{ viewsCount }} {{ viewsCount === 1 ? 'view' : 'views' }}</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <MessageSquareMoreIcon class="h-4 w-4" />
-                        {{ commentsCount }} {{ commentsCount === 1 ? 'comment' : 'comments' }}
+                        <span class="text-xs sm:text-sm">{{ commentsCount }} {{ commentsCount === 1 ? 'comment' : 'comments' }}</span>
                     </div>
                     <button
                         v-if="$page.props.auth?.user"
@@ -134,11 +143,11 @@ const toggleLike = (): void => {
                                 props.post.is_liked ? 'fill-red-500 text-red-500' : 'text-muted-foreground hover:text-red-500',
                             ]"
                         />
-                        {{ likesCount }} {{ likesCount === 1 ? 'like' : 'likes' }}
+                        <span class="text-xs sm:text-sm">{{ likesCount }} {{ likesCount === 1 ? 'like' : 'likes' }}</span>
                     </button>
                     <div v-else class="flex items-center gap-2 text-muted-foreground">
                         <Heart class="h-4 w-4" />
-                        {{ likesCount }} {{ likesCount === 1 ? 'like' : 'likes' }}
+                        <span class="text-xs sm:text-sm">{{ likesCount }} {{ likesCount === 1 ? 'like' : 'likes' }}</span>
                     </div>
                 </div>
             </div>
