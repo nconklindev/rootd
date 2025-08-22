@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Inspiring;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -50,7 +51,22 @@ class HandleInertiaRequests extends Middleware
                     ...(new Ziggy)->toArray(),
                     'location' => $request->url(),
                 ],
-                'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+                'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+                'siteData' => [
+                    'categories' => Category::query()
+                        ->select(['name', 'slug', 'color'])
+                        ->withCount('posts')
+                        ->orderByDesc('posts_count')
+                        ->orderBy('name')
+                        ->limit(10)
+                        ->get()
+                        ->map(fn ($category) => [
+                            'name' => $category->name,
+                            'slug' => $category->slug,
+                            'color' => $category->color,
+                            'post_count' => $category->posts_count,
+                        ]),
+                ],
             ]);
     }
 }
