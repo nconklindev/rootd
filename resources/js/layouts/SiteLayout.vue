@@ -51,6 +51,33 @@ const isSidebarItemActive = (item: any) => {
     return false;
 };
 
+// Function to check if a category is active
+const isCategoryActive = (categorySlug: string) => {
+    // Check if we're on Categories/Show component and the URL matches
+    if (page.component === 'Categories/Show') {
+        // Try multiple ways to match the current category
+        const currentUrl = page.url;
+        const expectedUrl = `/categories/${categorySlug}`;
+
+        // Direct URL comparison
+        if (currentUrl === expectedUrl) {
+            return true;
+        }
+
+        // Check if URL starts with the category path (handles query params)
+        if (currentUrl.startsWith(expectedUrl)) {
+            return true;
+        }
+
+        // Check route params if available
+        if (page.props.ziggy?.route?.parameters?.category === categorySlug) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
 // Determine if sidebar should be shown
 const showSidebar = computed(() => {
     // Don't show sidebar on welcome page
@@ -266,8 +293,13 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
                         <Link
                             v-for="category in popularCategories"
                             :key="category.slug"
-                            :href="`/categories/${category.slug}`"
-                            class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            :class="[
+                                'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                                isCategoryActive(category.slug)
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                            ]"
+                            :href="route('categories.show', category.slug)"
                         >
                             <div :style="{ backgroundColor: category.color }" class="h-3 w-3 flex-shrink-0 rounded-full" />
                             <span class="flex-1 truncate">{{ category.name }}</span>
@@ -276,8 +308,8 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
                             </span>
                         </Link>
                         <Link
+                            :href="route('categories.index')"
                             class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                            href="/categories"
                         >
                             <TrendingUp class="h-4 w-4" />
                             <span>Browse All Categories</span>

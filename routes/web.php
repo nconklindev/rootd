@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserPostController;
@@ -26,7 +27,12 @@ Route::post('/posts/{id}/like', [PostController::class, 'like'])->middleware(['a
 Route::delete('/posts/{id}/like', [PostController::class, 'unlike'])->middleware(['auth'])->name('posts.unlike');
 Route::delete('/posts/{post}', [PostController::class, 'destroy'])->middleware(['auth'])->name('posts.destroy');
 
+// User Posts (single GET)
 Route::get('/{user:name}/posts', [UserPostController::class, 'index'])->middleware(['auth'])->name('users.posts');
+
+// Categories
+Route::get('/categories', [CategoryController::class, 'index'])->middleware(['auth'])->name('categories.index');
+Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->middleware(['auth'])->name('categories.show');
 
 // Comments routes
 Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->middleware(['auth'])->name('posts.comments.store');
