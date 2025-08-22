@@ -22,16 +22,14 @@ class PostController extends Controller
 {
     public function __construct(
         private readonly PostViewService $postViewService
-    )
-    {
-    }
+    ) {}
 
     public function index(Request $request): Response
     {
         $posts = Post::query()
             ->latest('id')
-            ->select(['id', 'title', 'slug', 'excerpt', 'type', 'user_id', 'created_at', 'views_count'])
-            ->with(['user:id,name'])
+            ->select(['id', 'title', 'slug', 'excerpt', 'type', 'user_id', 'category_id', 'created_at', 'views_count'])
+            ->with(['user:id,name', 'category:id,name,slug,color'])
             ->withCount('comments', 'likes')
             ->when(auth()->check(), function ($query) {
                 $query->with(['likes' => function ($q) {
@@ -47,13 +45,14 @@ class PostController extends Controller
             $post->type_icon = $postType->icon();
             $post->type_label = $postType->label();
             $post->is_liked = auth()->check() && $post->likes->isNotEmpty();
+
             return $post;
         });
 
         return Inertia::render('Posts/Index', [
             'posts' => $posts,
             'can' => [
-                'create' => (bool)$request->user(),
+                'create' => (bool) $request->user(),
             ],
         ]);
     }
@@ -105,25 +104,25 @@ class PostController extends Controller
                 'likes_count' => $comment->likes_count,
                 'is_liked' => auth()->check() && $comment->likes->isNotEmpty(),
                 'children' => $children
-                    ->map(static fn(Comment $child): array => $mapComment($child))
+                    ->map(static fn (Comment $child): array => $mapComment($child))
                     ->values(),
             ];
         };
 
         $rootComments = collect($byParent->get(null))
-            ->map(static fn(Comment $c): array => $mapComment($c))
+            ->map(static fn (Comment $c): array => $mapComment($c))
             ->values();
 
         $title = $post->title ?? Str::headline($post->slug);
 
         return Inertia::render('Posts/Show', [
             'post' => $post->only(['id', 'title', 'slug', 'content', 'body', 'excerpt', 'type', 'views_count', 'created_at']) + [
-                    'author' => $post->user?->only(['id', 'name']),
-                    'comments' => $rootComments,
-                    'tags' => $post->tags->map(fn($tag) => $tag->only(['name', 'color']))->toArray(),
-                    'likes_count' => $post->likes_count,
-                    'is_liked' => auth()->check() && $post->likes->isNotEmpty(),
-                ],
+                'author' => $post->user?->only(['id', 'name']),
+                'comments' => $rootComments,
+                'tags' => $post->tags->map(fn ($tag) => $tag->only(['name', 'color']))->toArray(),
+                'likes_count' => $post->likes_count,
+                'is_liked' => auth()->check() && $post->likes->isNotEmpty(),
+            ],
             'title' => $title,
         ]);
     }
@@ -140,12 +139,17 @@ class PostController extends Controller
             'body' => $data['body'] ?? null,
             'excerpt' => $data['excerpt'] ?? null,
             'type' => $data['type'] ?? 'article',
-            'category_id' => $data['category_id'] ?? null,
         ]);
+
+        // Associate category using Eloquent relationship
+        if (! empty($data['category_id'])) {
+            $post->category()->associate($data['category_id']);
+            $post->save();
+        }
 
         // Handle tags - create if they don't exist, then attach
         $tagNames = $data['tags'] ?? [];
-        if (!empty($tagNames)) {
+        if (! empty($tagNames)) {
             $tagIds = $this->createOrFindTags($tagNames);
             $post->tags()->attach($tagIds);
         }
@@ -158,14 +162,14 @@ class PostController extends Controller
         $this->authorize('create', Post::class);
 
         return Inertia::render('Posts/Create', [
-            'postTypes' => collect(PostType::cases())->map(fn($type) => [
+            'postTypes' => collect(PostType::cases())->map(fn ($type) => [
                 'value' => $type->value,
                 'label' => ucfirst($type->value),
             ])->sortBy('label')->values(),
             'categories' => Category::select(['id', 'name', 'slug', 'color'])
                 ->orderBy('name')
                 ->get()
-                ->map(fn($category) => [
+                ->map(fn ($category) => [
                     'value' => $category->id,
                     'label' => $category->name,
                     'slug' => $category->slug,
@@ -177,7 +181,7 @@ class PostController extends Controller
     /**
      * Create or find tags by name and return their IDs.
      *
-     * @param array<string> $tagNames
+     * @param  array<string>  $tagNames
      * @return array<int>
      */
     private function createOrFindTags(array $tagNames): array
@@ -217,9 +221,9 @@ class PostController extends Controller
 
         return Inertia::render('Posts/Edit', [
             'post' => $post->only(['title', 'slug', 'content', 'excerpt', 'type']) + [
-                    'tags' => $post->tags->pluck('name')->toArray(),
-                ],
-            'postTypes' => collect(PostType::cases())->map(fn($type) => [
+                'tags' => $post->tags->pluck('name')->toArray(),
+            ],
+            'postTypes' => collect(PostType::cases())->map(fn ($type) => [
                 'value' => $type->value,
                 'label' => ucfirst($type->value),
             ])->sortBy('label')->values(),
@@ -242,7 +246,7 @@ class PostController extends Controller
 
         // Handle tags - sync existing tags with new ones
         $tagNames = $data['tags'] ?? [];
-        if (!empty($tagNames)) {
+        if (! empty($tagNames)) {
             $tagIds = $this->createOrFindTags($tagNames);
             $post->tags()->sync($tagIds); // sync() replaces all current tags
         } else {
@@ -261,6 +265,37 @@ class PostController extends Controller
         return redirect()->route('posts.index');
     }
 
+    public function myPosts(): Response
+    {
+        $posts = auth()->user()->posts()
+            ->latest('id')
+            ->select(['id', 'title', 'slug', 'excerpt', 'type', 'user_id', 'category_id', 'created_at', 'views_count'])
+            ->with(['user:id,name', 'category:id,name,slug,color'])
+            ->withCount('comments', 'likes')
+            ->when(auth()->check(), function ($query) {
+                $query->with(['likes' => function ($q) {
+                    $q->where('user_id', auth()->id());
+                }]);
+            })
+            ->paginate(10)
+            ->withQueryString();
+
+        // Transform posts to include icon information and like status
+        $posts->through(function ($post) {
+            $postType = PostType::from($post->type->value);
+            $post->type_icon = $postType->icon();
+            $post->type_label = $postType->label();
+            $post->is_liked = auth()->check() && $post->likes->isNotEmpty();
+
+            return $post;
+        });
+
+        return Inertia::render('Posts/MyPosts', [
+            'posts' => $posts,
+            'user' => auth()->user()->only(['id', 'name']),
+        ]);
+    }
+
     public function like(int $id): RedirectResponse
     {
         $post = Post::findOrFail($id);
@@ -269,7 +304,7 @@ class PostController extends Controller
         // Check if the user already liked this post
         $existingLike = $post->likes()->where('user_id', $user->id)->first();
 
-        if (!$existingLike) {
+        if (! $existingLike) {
             $like = new Like;
             $like->user_id = $user->id;
             $post->likes()->save($like);
