@@ -10,7 +10,7 @@ class StorePostRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return (bool)$this->user();
+        return (bool) $this->user();
     }
 
     public function rules(): array
@@ -22,7 +22,7 @@ class StorePostRequest extends FormRequest
             'excerpt' => ['nullable', 'string', 'max:255'],
             'type' => ['nullable', Rule::enum(PostType::class)],
             'category_id' => ['nullable', 'exists:categories,id'],
-            'tags' => ['nullable', 'array'],
+            'tags' => ['nullable', 'array', 'max:5'],
             'tags.*' => ['string', 'max:50'],
         ];
     }
