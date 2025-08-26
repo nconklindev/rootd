@@ -1,6 +1,7 @@
 <script lang="ts" setup>
+import { Separator } from '@/components/ui/separator';
 import { Link, router } from '@inertiajs/vue3';
-import { Code2, Eye, FileTerminal, FileText, Heart, Image, Link2, MessageSquareMoreIcon } from 'lucide-vue-next';
+import { Eye, FileText, Heart, Image, MessageSquareMoreIcon } from 'lucide-vue-next';
 
 interface Post {
     id: number;
@@ -19,6 +20,13 @@ interface Post {
         name: string;
         color: string;
     };
+    tags?: Tag[];
+}
+
+interface Tag {
+    name: string;
+    color: string;
+    slug: string;
 }
 
 interface Props {
@@ -32,9 +40,6 @@ const getIconComponent = (iconName: string) => {
     const iconMap: Record<string, any> = {
         FileText,
         Image,
-        Code2,
-        FileTerminal,
-        Link2,
     };
     return iconMap[iconName] || FileText;
 };
@@ -61,27 +66,37 @@ const getIconComponent = (iconName: string) => {
         <!-- Mobile-first responsive metadata layout -->
         <div class="mt-4 space-y-3 text-sm text-zinc-300 sm:space-y-0">
             <!-- Author and post info row -->
-            <div class="flex items-center justify-between">
-                <div class="flex min-w-0 flex-1 items-center space-x-2">
+            <div class="flex flex-col justify-center">
+                <div :class="{ 'space-y-4': post.tags?.length > 0 }" class="flex min-w-0 flex-1 flex-row space-x-2">
                     <span class="truncate"
                         >By
-                        <Link 
-                            v-if="post.user?.name" 
-                            :href="route('users.posts', post.user.name)" 
-                            class="transition-colors duration-200 hover:text-primary" 
+                        <Link
+                            v-if="post.user?.name"
+                            :href="route('users.posts', post.user.name)"
+                            class="transition-colors duration-200 hover:text-primary"
                             @click.stop
-                        >{{
-                            post.user.name
-                        }}</Link>
+                            >{{ post.user.name }}</Link
+                        >
                         <span v-else class="text-muted-foreground">Unknown</span>
                         &bullet;
                         <span>{{ post.created_at_human }}</span>
                     </span>
-                    <div class="flex-shrink-0 rounded p-1">
+                    <div class="rounded p-1">
                         <component :is="getIconComponent(post.type_icon)" aria-hidden="true" class="size-4 shrink-0" />
                     </div>
                 </div>
+                <div v-if="post.tags?.length > 0" class="flex flex-wrap gap-2">
+                    <div
+                        v-for="tag in post.tags"
+                        :key="tag.name"
+                        :style="{ backgroundColor: tag.color + '20', borderColor: tag.color, color: tag.color }"
+                        class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset"
+                    >
+                        {{ tag.name }}
+                    </div>
+                </div>
             </div>
+            <Separator class="my-4 w-1/2" />
 
             <!-- Stats row - responsive layout -->
             <div class="flex items-center justify-end">
