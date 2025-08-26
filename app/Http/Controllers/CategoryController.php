@@ -45,18 +45,15 @@ class CategoryController extends Controller
         $categories = Category::query()
             ->select(['id', 'name', 'slug', 'color', 'description'])
             ->withCount([
-                'posts' => function ($query) {
-                    $query->select('category_id');
-                },
+                'posts',
                 'posts as total_comments' => function ($query) {
-                    $query->join('comments', 'posts.id', '=', 'comments.post_id')
-                        ->select('category_id');
+                    $query->join('comments', 'posts.id', '=', 'comments.post_id');
                 },
                 'posts as total_likes' => function ($query) {
                     $query->join('likes', function ($join) {
                         $join->on('posts.id', '=', 'likes.likeable_id')
                             ->where('likes.likeable_type', '=', Post::class);
-                    })->select('category_id');
+                    });
                 }
             ])
             ->orderBy('posts_count', 'desc') // Order by most posts first

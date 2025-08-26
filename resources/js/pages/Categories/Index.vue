@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { Badge } from '@/components/ui/badge';
 import SiteLayout from '@/layouts/SiteLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { TrendingUp } from 'lucide-vue-next';
@@ -21,24 +20,24 @@ defineOptions({ layout: SiteLayout });
                 v-for="category in categories"
                 :key="category.slug"
                 :href="route('categories.show', category.slug)"
-                class="group rounded-lg border bg-card p-6 transition-colors hover:bg-muted"
+                class="group flex flex-col rounded-lg border bg-card p-6 transition-colors hover:bg-muted"
+                prefetch
             >
                 <div class="flex items-start justify-between">
                     <div class="flex items-center space-x-3">
-                        <div 
-                            :style="{ backgroundColor: category.color }" 
-                            class="h-4 w-4 rounded-full"
-                        />
-                        <div>
+                        <div :style="{ backgroundColor: category.color }" class="h-4 w-4 flex-shrink-0 rounded-full" />
+                        <div class="min-w-0 flex-1">
                             <h3 class="font-semibold group-hover:text-primary">{{ category.name }}</h3>
-                            <p v-if="category.description" class="text-sm text-muted-foreground">
-                                {{ category.description }}
-                            </p>
+                            <div class="mt-1 h-10">
+                                <p v-if="category.description" class="line-clamp-2 text-sm text-muted-foreground">
+                                    {{ category.description }}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="mt-4 flex items-center justify-between text-sm text-muted-foreground">
+
+                <div class="mt-auto flex items-center justify-between pt-4 text-sm text-muted-foreground">
                     <div class="flex space-x-4">
                         <span>{{ category.posts_count || 0 }} posts</span>
                         <span v-if="category.total_comments">{{ category.total_comments }} comments</span>
@@ -49,8 +48,8 @@ defineOptions({ layout: SiteLayout });
         </div>
 
         <div v-else class="rounded border bg-card p-8 text-center text-muted-foreground">
-            <TrendingUp class="mx-auto h-12 w-12 mb-4 opacity-50" />
-            <h3 class="text-lg font-semibold mb-2">No categories yet</h3>
+            <TrendingUp class="mx-auto mb-4 h-12 w-12 opacity-50" />
+            <h3 class="mb-2 text-lg font-semibold">No categories yet</h3>
             <p>Categories will appear here as they're created.</p>
         </div>
     </div>
