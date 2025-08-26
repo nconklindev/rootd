@@ -29,7 +29,7 @@ class PostController extends Controller
         $posts = Post::query()
             ->latest('id')
             ->select(['id', 'title', 'slug', 'excerpt', 'type', 'user_id', 'category_id', 'created_at', 'views_count'])
-            ->with(['user:id,name', 'category:id,name,slug,color'])
+            ->with(['user:id,name', 'category:id,name,slug,color', 'tags:id,name,slug,color'])
             ->withCount('comments', 'likes')
             ->when(auth()->check(), function ($query) {
                 $query->with(['likes' => function ($q) {
@@ -201,7 +201,7 @@ class PostController extends Controller
                 [
                     'name' => $cleanName,
                     'slug' => Str::slug($cleanName),
-                    'color' => sprintf('#%06X', mt_rand(0, 0xFFFFFF)), // Random color
+                    'color' => $this->generateTagColor(),
                     'description' => '', // Empty description for auto-created tags
                 ]
             );
@@ -210,6 +210,38 @@ class PostController extends Controller
         }
 
         return $tagIds;
+    }
+
+    /**
+     * Generate a random color with good contrast for tag display.
+     * Uses a curated list of colors that work well with light backgrounds.
+     */
+    private function generateTagColor(): string
+    {
+        $colors = [
+            '#3B82F6', // Blue
+            '#10B981', // Emerald
+            '#8B5CF6', // Violet
+            '#F59E0B', // Amber
+            '#EF4444', // Red
+            '#06B6D4', // Cyan
+            '#84CC16', // Lime
+            '#F97316', // Orange
+            '#EC4899', // Pink
+            '#6366F1', // Indigo
+            '#14B8A6', // Teal
+            '#A855F7', // Purple
+            '#DC2626', // Red-600
+            '#059669', // Emerald-600
+            '#7C3AED', // Violet-600
+            '#D97706', // Amber-600
+            '#0891B2', // Cyan-600
+            '#65A30D', // Lime-600
+            '#EA580C', // Orange-600
+            '#BE185D', // Pink-600
+        ];
+
+        return $colors[array_rand($colors)];
     }
 
     public function edit(Post $post): Response
