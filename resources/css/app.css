@@ -1,6 +1,10 @@
 @import 'tailwindcss';
-
 @import 'tw-animate-css';
+@import 'highlight.js/styles/tokyo-night-dark.css';
+
+@plugin '@tailwindcss/typography';
+
+/* Syntax highlighting for code blocks - tokyo-night-dark theme */
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -185,8 +189,7 @@
 @layer utilities {
     body,
     html {
-        --font-sans:
-            'Fira Code', monospace, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        --font-sans: 'Fira Code', monospace, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     }
 }
 
@@ -201,5 +204,42 @@
 
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+/* Code block styling for TipTap editor and highlight.js */
+@layer components {
+    /* TipTap editor code blocks */
+    .ProseMirror pre {
+        @apply rounded-md p-2 overflow-x-auto border mb-4 text-sm;
+        font-family: var(--font-mono);
+    }
+
+    .ProseMirror pre code {
+        @apply text-sm;
+        font-family: inherit;
+        background: none !important;
+        padding: 0;
+        border-radius: 0;
+    }
+
+    /* Ensure code blocks without hljs class also get styled */
+    pre {
+        @apply p-0.5 overflow-x-auto border my-4;
+        font-family: var(--font-mono);
+        background: #1a1b26 !important; /* tokyo-night-dark background */
+    }
+
+    pre code.hljs {
+        @apply text-sm;
+        font-family: inherit;
+        background: none !important;
+        padding: 0;
+        border-radius: 0;
+    }
+
+    /* Light mode override to use dark theme consistently */
+    .hljs {
+        background: #1a1b26 !important; /* Always use tokyo-night-dark */
     }
 }

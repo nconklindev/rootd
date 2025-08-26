@@ -1,11 +1,10 @@
 <script lang="ts" setup>
-import FormDescription from '@/components/FormDescription.vue';
 import InputError from '@/components/InputError.vue';
+import TipTapEditor from '@/components/TipTapEditor.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
-import { Textarea } from '@/components/ui/textarea';
 import SiteLayout from '@/layouts/SiteLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
@@ -40,54 +39,21 @@ const form = useForm({
     excerpt: '',
     category_id: '',
     body: '',
-    type: 'article',
+    type: 'text',
     file: null,
-    language: '',
     tags: [],
     link: '',
     description: '',
 });
 
-// Define the list of languages for code snippets and sort it alphabetically for display in the select box
-// I'm not going to worry about alphabetizing it here...
-const languages = [
-    { value: 'python', label: 'Python' },
-    { value: 'c', label: 'C' },
-    { value: 'csharp', label: 'C#' },
-    { value: 'rust', label: 'Rust' },
-    { value: 'go', label: 'Go' },
-    { value: 'java', label: 'Java' },
-    { value: 'javascript', label: 'JavaScript' },
-    { value: 'typescript', label: 'TypeScript' },
-    { value: 'php', label: 'PHP' },
-    { value: 'sql', label: 'SQL' },
-    { value: 'bash', label: 'Bash' },
-    { value: 'perl', label: 'Perl' },
-    { value: 'ruby', label: 'Ruby' },
-    { value: 'swift', label: 'Swift' },
-    { value: 'kotlin', label: 'Kotlin' },
-    { value: 'scala', label: 'Scala' },
-    { value: 'elixir', label: 'Elixir' },
-    { value: 'lua', label: 'Lua' },
-    { value: 'r', label: 'R' },
-    { value: 'dart', label: 'Dart' },
-    { value: 'objective-c', label: 'Objective-C' },
-].toSorted((a, b) => a.label.localeCompare(b.label)) as { value: string; label: string }[];
-
 // Create a computed property that updates the placeholder text for the title based on the selected post type
 // Useful for UX
 const titlePlaceholder = computed(() => {
     switch (form.type) {
-        case 'article':
+        case 'text':
             return 'How to Use Burp Suite to Test Your API endpoints';
-        case 'code':
-            return 'POC: Exploiting MS17-010 in Windows 7';
-        case 'link':
-            return 'New security vulnerability discovered in popular library';
-        case 'image':
+        case 'media':
             return 'The Software Development Life Cycle Infographic';
-        case 'file':
-            return 'New scanning tool written in Go';
         default:
             return 'My awesome post title';
     }
@@ -123,7 +89,7 @@ function submit(): void {
                             <SelectTrigger class="w-full max-w-full min-w-0">
                                 <SelectValue placeholder="Select a category" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent class="max-w-xs min-w-[--reka-select-trigger-width]" position="popper">
                                 <SelectItem v-for="category in props.categories" :key="category.value" :value="category.value.toString()">
                                     <div class="flex items-center gap-2">
                                         <div :style="{ backgroundColor: category.color }" class="h-3 w-3 rounded-full"></div>
@@ -137,7 +103,7 @@ function submit(): void {
                 </div>
 
                 <!-- Type -->
-                <div :class="{ 'grid-cols-2': form.type === 'code' }" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                         <label class="mb-1 block text-sm font-medium" for="type">Type</label>
                         <Select id="type" v-model="form.type" class="w-full">
@@ -158,30 +124,13 @@ function submit(): void {
                         </Select>
                         <InputError :message="form.errors.type" />
                     </div>
-
-                    <!-- Language -->
-                    <div v-if="form.type === 'code'">
-                        <label class="mb-1 block text-sm font-medium" for="language">Language</label>
-                        <Select id="language" v-model="form.language" :required="form.type === 'code'" class="w-full">
-                            <SelectTrigger class="w-full">
-                                <SelectValue placeholder="Select a language" />
-                            </SelectTrigger>
-                            <SelectContent :side-offset="4" align="start" class="max-w-[200px] min-w-[--reka-select-trigger-width]" position="popper">
-                                <SelectItem v-for="language in languages" :key="language.value" :value="language.label">{{
-                                    language.label
-                                }}</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <InputError :message="form.errors.language" />
-                    </div>
                 </div>
 
-                <div v-if="form.type === 'link'">
-                    <label class="mb-1 block text-sm font-medium" for="link">Link</label>
+                <div v-if="form.type === 'media'">
+                    <label class="mb-1 block text-sm font-medium" for="link">Link <span class="text-muted-foreground">(Optional)</span></label>
                     <Input
                         id="link"
                         v-model="form.link"
-                        :required="form.type === 'link'"
                         placeholder="https://thehackernews.com/2025/08/uk-government-drops-apple-encryption.html"
                         type="url"
                     />
@@ -190,52 +139,14 @@ function submit(): void {
 
                 <!-- Content/Code Snippet -->
                 <div>
-                    <label class="mb-1 block text-sm font-medium" for="content">{{ form.type === 'code' ? 'Code Snippet' : 'Content' }}</label>
-                    <Textarea
+                    <label class="mb-1 block text-sm font-medium" for="content">Content</label>
+                    <TipTapEditor
                         id="content"
                         v-model="form.content"
-                        :class="[
-                            'w-full rounded-md border border-input bg-background px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm',
-                            form.type === 'code' ? 'font-mono text-sm leading-relaxed' : '',
-                        ]"
-                        :placeholder="form.type === 'code' ? 'Paste your code here...' : 'Write your content here...'"
-                        :required="form.type === 'article' || form.type === 'code'"
-                        rows="30"
-                    />
-                    <FormDescription
-                        v-if="form.type === 'code'"
-                        message="Your code will be automatically highlighted based on the selected language when displayed."
+                        placeholder="Write your content here..."
+                        class="w-full shadow-xs transition-[color,box-shadow] outline-none focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50"
                     />
                     <InputError :message="form.errors.content" />
-                </div>
-
-                <!-- Code Body -->
-                <div v-if="form.type === 'code'">
-                    <label class="mb-1 block text-sm font-medium" for="body">Body & Context</label>
-                    <Textarea
-                        id="body"
-                        v-model="form.body"
-                        class="w-full rounded-md border border-input bg-background px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm"
-                        placeholder="Explain what this code does, how to use it, any dependencies, caveats, or additional context..."
-                        rows="8"
-                    />
-                    <FormDescription message="Provide detailed description, usage instructions, or context about your code snippet." />
-                    <InputError :message="form.errors.body" />
-                </div>
-
-                <!-- Short Summary -->
-                <div v-if="form.type === 'code'">
-                    <label class="mb-1 block text-sm font-medium" for="description"
-                        >Short Summary <span class="text-muted-foreground">(Optional)</span></label
-                    >
-                    <Input
-                        id="description"
-                        v-model="form.excerpt"
-                        maxlength="255"
-                        placeholder="Brief one-line summary for previews and search results..."
-                    />
-                    <FormDescription message="This appears in post previews and search results. If empty, we'll auto-generate from your code." />
-                    <InputError :message="form.errors.excerpt" />
                 </div>
 
                 <!-- Tags -->
@@ -252,15 +163,9 @@ function submit(): void {
                 </div>
 
                 <!-- File Attachment -->
-                <div v-if="form.type === 'code' || form.type === 'image' || form.type === 'file'" class="grid w-full max-w-sm items-center gap-1.5">
+                <div class="grid w-full max-w-sm items-center gap-1.5">
                     <label class="mb-1 block text-sm font-medium" for="file">Attachment</label>
-                    <Input
-                        id="file"
-                        :required="form.type === 'image' || form.type === 'file'"
-                        class="w-full"
-                        type="file"
-                        @input="form.file = $event.target.files[0]"
-                    />
+                    <Input id="file" :required="form.type === 'media'" class="w-full" type="file" @input="form.file = $event.target.files[0]" />
                     <InputError :message="form.errors.file" />
                 </div>
 

@@ -1,11 +1,19 @@
 <script lang="ts" setup>
-import CodeBlock from '@/components/CodeBlock.vue';
 import CommentItem from '@/components/CommentItem.vue';
 import { Button } from '@/components/ui/button';
 import SiteLayout from '@/layouts/SiteLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import hljs from 'highlight.js';
+import 'highlight.js/styles/tokyo-night-dark.css';
 import { ArrowLeft, Eye, Heart, MessageSquareMoreIcon } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { computed, nextTick, onMounted } from 'vue';
+
+// Highlight code blocks after component mounts and DOM is ready
+onMounted(() => {
+    nextTick(() => {
+        hljs.highlightAll();
+    });
+});
 
 // Define the layout for this page
 // using InertiaJS Persistent Layouts
@@ -92,14 +100,8 @@ const toggleLike = (): void => {
         </div>
 
         <div class="rounded border bg-card p-6">
-            <!-- Code content -->
-            <div v-if="post.type === 'code'" class="mt-4">
-                <CodeBlock :auto-detect="!post.language" :code="post.content" :language="post.language?.toLowerCase()" />
-            </div>
-
             <!-- Regular text content -->
-            <div v-else class="whitespace-pre-wrap">{{ post.content }}</div>
-            <div v-if="post.type === 'code' && post.body" class="mt-4">{{ post.body }}</div>
+            <div class="max-w-none" v-html="post.content"></div>
 
             <!-- Mobile-optimized post metadata -->
             <div class="mt-6 space-y-4 text-sm text-muted-foreground">
