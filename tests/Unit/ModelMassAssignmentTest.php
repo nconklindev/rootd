@@ -23,7 +23,7 @@ class ModelMassAssignmentTest extends TestCase
             'slug' => 'hello-world',
             'content' => 'Post content',
             'excerpt' => 'Post excerpt',
-            'type' => 'article',
+            'type' => 'text',
         ]);
 
         $this->assertDatabaseHas('posts', [
@@ -43,7 +43,7 @@ class ModelMassAssignmentTest extends TestCase
             'slug' => 'should-not-override-user',
             'content' => 'x',
             'excerpt' => 'x',
-            'type' => 'article',
+            'type' => 'text',
             'user_id' => 999, // should be ignored by mass assignment
         ]);
 
@@ -58,7 +58,7 @@ class ModelMassAssignmentTest extends TestCase
             'slug' => 'post-a',
             'content' => 'C',
             'excerpt' => 'E',
-            'type' => 'article',
+            'type' => 'text',
         ]);
 
         $comment = $post->comments()->make([
@@ -84,7 +84,7 @@ class ModelMassAssignmentTest extends TestCase
             'slug' => 'post-c',
             'content' => 'C',
             'excerpt' => 'E',
-            'type' => 'article',
+            'type' => 'text',
         ]);
 
         $comment = $post->comments()->make([
@@ -108,7 +108,7 @@ class ModelMassAssignmentTest extends TestCase
             'slug' => 'post-b',
             'content' => 'C',
             'excerpt' => 'E',
-            'type' => 'article',
+            'type' => 'text',
         ]);
 
         $attachment = new Attachment(['type' => 'image']);
@@ -138,7 +138,7 @@ class ModelMassAssignmentTest extends TestCase
             'slug' => 'post-d',
             'content' => 'C',
             'excerpt' => 'E',
-            'type' => 'article',
+            'type' => 'text',
         ]);
 
         $attachment = $post->attachments()->make([

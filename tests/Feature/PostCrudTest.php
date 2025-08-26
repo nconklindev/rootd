@@ -18,7 +18,7 @@ class PostCrudTest extends TestCase
             'slug' => 'hello-world',
             'content' => 'Post content',
             'excerpt' => 'Excerpt',
-            'type' => 'article',
+            'type' => 'text',
         ]);
 
         $this->get(route('posts.index'))->assertRedirect('/login');
@@ -40,7 +40,7 @@ class PostCrudTest extends TestCase
             'slug' => 'my-first-post',
             'content' => 'Body',
             'excerpt' => 'Short',
-            'type' => 'article',
+            'type' => 'text',
         ]);
 
         $response->assertRedirect();
@@ -60,7 +60,7 @@ class PostCrudTest extends TestCase
             'slug' => 'my-first-post',
             'content' => 'A',
             'excerpt' => 'E',
-            'type' => 'article',
+            'type' => 'text',
         ]);
 
         $this->actingAs($other)
@@ -69,7 +69,7 @@ class PostCrudTest extends TestCase
                 'slug' => 'my-first-post',
                 'content' => 'B',
                 'excerpt' => 'E',
-                'type' => 'article',
+                'type' => 'text',
             ])->assertForbidden();
 
         $this->actingAs($owner)
@@ -78,7 +78,7 @@ class PostCrudTest extends TestCase
                 'slug' => 'my-first-post',
                 'content' => 'B',
                 'excerpt' => 'E',
-                'type' => 'article',
+                'type' => 'text',
             ])->assertRedirect();
 
         $this->assertDatabaseHas('posts', [

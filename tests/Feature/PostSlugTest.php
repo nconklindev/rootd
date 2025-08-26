@@ -19,7 +19,7 @@ class PostSlugTest extends TestCase
             'title' => 'My First Post',
             'content' => 'Body',
             'excerpt' => 'Short',
-            'type' => 'article',
+            'type' => 'text',
             'status' => 'draft',
         ]);
 
@@ -34,7 +34,7 @@ class PostSlugTest extends TestCase
             'title' => 'Duplicate Title',
             'content' => 'Body',
             'excerpt' => 'Short',
-            'type' => 'article',
+            'type' => 'text',
             'status' => 'draft',
         ]);
 
@@ -42,7 +42,7 @@ class PostSlugTest extends TestCase
             'title' => 'Another Title',
             'content' => 'Body',
             'excerpt' => 'Short',
-            'type' => 'article',
+            'type' => 'text',
             'status' => 'draft',
         ]);
 
