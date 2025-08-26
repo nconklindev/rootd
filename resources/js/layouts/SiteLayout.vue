@@ -259,6 +259,7 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
                                 : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                         ]"
                         :href="item.href"
+                        prefetch="click"
                     >
                         <component :is="item.icon" class="h-4 w-4" />
                         <span>{{ item.label }}</span>
@@ -279,6 +280,7 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
                                     : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                             ]"
                             :href="item.href"
+                            prefetch
                         >
                             <component :is="item.icon" class="h-4 w-4" />
                             <span>{{ item.label }}</span>
@@ -300,6 +302,7 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
                                     : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                             ]"
                             :href="route('categories.show', category.slug)"
+                            prefetch="click"
                         >
                             <div :style="{ backgroundColor: category.color }" class="h-3 w-3 flex-shrink-0 rounded-full" />
                             <span class="flex-1 truncate">{{ category.name }}</span>
@@ -326,6 +329,7 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
                             :key="item.href"
                             :href="item.href"
                             class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            prefetch="click"
                         >
                             <component :is="item.icon" class="h-4 w-4" />
                             <span>{{ item.label }}</span>
@@ -343,6 +347,7 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
                                 : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                         ]"
                         :href="route('profile.edit')"
+                        prefetch="click"
                     >
                         <Settings class="h-4 w-4" />
                         <span>Settings</span>
