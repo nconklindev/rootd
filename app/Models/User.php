@@ -50,6 +50,11 @@ class User extends Authenticatable
         return $this->hasMany(Attachment::class, 'user_id');
     }
 
+    public function likes(): HasMany
+    {
+        return $this->hasMany(Like::class, 'user_id');
+    }
+
     /**
      * Get the attributes that should be cast.
      *
