@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserPostController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -26,8 +27,10 @@ Route::post('/posts/{id}/like', [PostController::class, 'like'])->middleware(['a
 Route::delete('/posts/{id}/like', [PostController::class, 'unlike'])->middleware(['auth'])->name('posts.unlike');
 Route::delete('/posts/{post}', [PostController::class, 'destroy'])->middleware(['auth'])->name('posts.destroy');
 
-// User Posts (single GET)
-Route::get('/{user:name}/posts', [UserPostController::class, 'index'])->middleware(['auth'])->name('users.posts');
+// User Profile and Posts
+Route::get('/u/{user:username}', [UserController::class, 'show'])->middleware(['auth'])->name('users.show');
+Route::post('/u/{user:username}/follow', [UserController::class, 'follow'])->middleware(['auth'])->name('users.follow');
+Route::get('/u/{user:username}/posts', [UserPostController::class, 'index'])->middleware(['auth'])->name('users.posts');
 
 // Categories
 Route::get('/categories', [CategoryController::class, 'index'])->middleware(['auth'])->name('categories.index');
@@ -35,10 +38,16 @@ Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->
 
 // Wiki
 
+// Followers
+
+// Following
+
+// Tags
+
 // Comments routes
 Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->middleware(['auth'])->name('posts.comments.store');
 Route::post('/comments/{comment}/like', [CommentController::class, 'like'])->middleware(['auth'])->name('comments.like');
 Route::delete('/comments/{comment}/like', [CommentController::class, 'unlike'])->middleware(['auth'])->name('comments.unlike');
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';
