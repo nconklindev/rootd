@@ -24,6 +24,8 @@ class DashboardController extends Controller
 
         // User's content statistics
         $userStats = [
+            'total_followers' => $user->followers()->count(),
+            'total_following' => $user->following()->count(),
             'total_posts' => $user->posts()->count(),
             'total_comments' => $user->comments()->count(),
             'total_likes_given' => Like::where('user_id', $user->id)->count(),
