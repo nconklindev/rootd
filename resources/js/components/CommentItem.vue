@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useInitials } from '@/composables/useInitials';
 import { User } from '@/types';
-import { router, useForm } from '@inertiajs/vue3';
+import { Link, router, useForm } from '@inertiajs/vue3';
 import { Heart } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
@@ -84,15 +84,35 @@ const toggleLike = (): void => {
         <div class="group rounded-md transition-shadow duration-200 focus-within:ring-1 focus-within:ring-primary/40">
             <div class="p-4">
                 <div class="mb-1 flex flex-wrap items-center gap-x-2.5 text-sm text-muted-foreground">
-                    <Avatar class="h-8 w-8 overflow-hidden rounded-full">
-                        <AvatarImage v-if="showAvatar" :alt="comment.user?.name ?? 'Unknown'" :src="comment.user?.avatar!" />
-                        <AvatarFallback class="rounded-lg bg-accent/75 text-black dark:text-white">
-                            {{ getInitials(comment.user?.name ?? 'Unknown') }}
-                        </AvatarFallback>
-                    </Avatar>
-                    <span class="font-semibold text-foreground">{{ comment.user?.name ?? 'Unknown' }}</span>
+                    <!-- Make avatar + name a single clickable link to the user's profile -->
+                    <Link
+                        v-if="comment.user?.username"
+                        :aria-label="`View ${comment.user?.name}'s profile`"
+                        :href="route('users.show', { user: comment.user.username })"
+                        class="inline-flex items-center gap-x-2.5 font-semibold text-foreground hover:text-primary"
+                    >
+                        <Avatar class="h-8 w-8 overflow-hidden rounded-full">
+                            <AvatarImage v-if="showAvatar" :alt="comment.user?.name ?? 'Unknown'" :src="comment.user?.avatar!" />
+                            <AvatarFallback class="rounded-lg bg-accent/75 text-black dark:text-white">
+                                {{ getInitials(comment.user?.name ?? 'Unknown') }}
+                            </AvatarFallback>
+                        </Avatar>
+                        <span>{{ comment.user?.name ?? 'Unknown' }}</span>
+                    </Link>
+                    <div v-else class="inline-flex items-center gap-x-2.5">
+                        <Avatar class="h-8 w-8 overflow-hidden rounded-full">
+                            <AvatarImage v-if="showAvatar" :alt="comment.user?.name ?? 'Unknown'" :src="comment.user?.avatar!" />
+                            <AvatarFallback class="rounded-lg bg-accent/75 text-black dark:text-white">
+                                {{ getInitials(comment.user?.name ?? 'Unknown') }}
+                            </AvatarFallback>
+                        </Avatar>
+                        <span class="font-semibold text-foreground">
+                            {{ comment.user?.name ?? 'Unknown' }}
+                        </span>
+                    </div>
                     <span class="opacity-60">•</span>
                     <span class="font-light">{{ comment.created_at_human }}</span>
+
                 </div>
 
                 <div class="mt-2.5 whitespace-pre-wrap text-foreground">

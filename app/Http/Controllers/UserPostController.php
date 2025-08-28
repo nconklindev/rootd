@@ -13,7 +13,7 @@ class UserPostController extends Controller
         $posts = $user->posts()
             ->latest('id')
             ->select(['id', 'title', 'slug', 'excerpt', 'type', 'user_id', 'category_id', 'created_at', 'views_count'])
-            ->with(['user:id,name', 'category:id,name,slug,color'])
+            ->with(['user:id,name,username', 'category:id,name,slug,color'])
             ->withCount('comments', 'likes')
             ->get();
 
@@ -28,7 +28,7 @@ class UserPostController extends Controller
 
         return Inertia::render('UserPosts/Index', [
             'posts' => $posts,
-            'user' => $user->only(['id', 'name']),
+            'user' => $user->only(['id', 'name', 'username']),
         ]);
     }
 }

@@ -47,7 +47,7 @@ const form = useForm({
 });
 
 const isFormValid = computed(() => {
-    return form.title && form.content && form.category_id && form.type;
+    return form.title && form.content.length > 0 && form.category_id && form.type;
 });
 
 // Create a computed property that updates the placeholder text for the title based on the selected post type
@@ -176,7 +176,7 @@ function submit(): void {
                 <progress v-if="form.progress" :value="form.progress.percentage" max="100">{{ form.progress.percentage }}%</progress>
 
                 <div class="pt-2">
-                    <Button :disabled="isFormValid" type="submit">Create</Button>
+                    <Button :disabled="!isFormValid" type="submit">Create</Button>
                 </div>
             </form>
         </div>

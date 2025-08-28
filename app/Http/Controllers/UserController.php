@@ -8,6 +8,7 @@ use App\Models\Like;
 use App\Models\Post;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Number;
 use Inertia\Inertia;
 
 class UserController extends Controller
@@ -40,6 +41,8 @@ class UserController extends Controller
                 $postType = PostType::from($post->type->value);
                 $post->type_icon = $postType->icon();
                 $post->type_label = $postType->label();
+                $post->created_at_human = $post->created_at->diffForHumans();
+                $post->views_count_formatted = Number::abbreviate($post->views_count);
 
                 return $post;
             });
@@ -54,6 +57,7 @@ class UserController extends Controller
                     'title' => $post->title,
                     'slug' => $post->slug,
                     'views_count' => $post->views_count,
+                    'views_count_formatted' => Number::abbreviate($post->views_count),
                     'likes_count' => $post->likes_count,
                     'comments_count' => $post->comments_count,
                     'engagement_score' => ($post->likes_count * 2) + $post->comments_count + $post->views_count,
@@ -73,7 +77,11 @@ class UserController extends Controller
             ->groupBy('categories.id', 'categories.name', 'categories.slug', 'categories.color')
             ->orderByDesc('posts_count')
             ->take(5)
-            ->get();
+            ->get()
+            ->map(function ($category) {
+                $category->total_views_formatted = Number::abbreviate($category->total_views ?? 0);
+                return $category;
+            });
 
         // Recent activity timeline (last 30 days, public activities only)
         $thirtyDaysAgo = Carbon::now()->subDays(30);
@@ -89,12 +97,27 @@ class UserController extends Controller
                     'title' => $post->title,
                     'slug' => $post->slug,
                     'created_at' => $post->created_at,
+                    'created_at_human' => $post->created_at->diffForHumans(),
                 ];
             });
 
+        // Format user stats
+        $formattedUserStats = [
+            'followers_count' => $userStats['followers_count'],
+            'followers_count_formatted' => Number::abbreviate($userStats['followers_count']),
+            'following_count' => $userStats['following_count'],
+            'following_count_formatted' => Number::abbreviate($userStats['following_count']),
+            'total_posts' => $userStats['total_posts'],
+            'total_posts_formatted' => Number::abbreviate($userStats['total_posts']),
+            'total_views' => $userStats['total_views'],
+            'total_views_formatted' => Number::abbreviate($userStats['total_views']),
+            'total_likes_received' => $userStats['total_likes_received'],
+            'total_likes_received_formatted' => Number::abbreviate($userStats['total_likes_received']),
+        ];
+
         return Inertia::render('User/Show', [
             'profileUser' => $user->only(['id', 'name', 'username']),
-            'userStats' => $userStats,
+            'userStats' => $formattedUserStats,
             'recentPosts' => $recentPosts,
             'topPosts' => $topPosts,
             'categoryStats' => $categoryStats,

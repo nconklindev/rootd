@@ -15,6 +15,7 @@ interface Post {
     type_icon: string;
     user?: {
         name: string;
+        username: string;
     };
     category?: {
         name: string;
@@ -72,7 +73,7 @@ const getIconComponent = (iconName: string) => {
                         >By
                         <Link
                             v-if="post.user?.name"
-                            :href="route('users.posts', post.user.name)"
+                            :href="route('users.show', { user: post.user.username })"
                             class="transition-colors duration-200 hover:text-primary"
                             @click.stop
                             >{{ post.user.name }}</Link

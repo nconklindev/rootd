@@ -14,7 +14,7 @@ class CategoryController extends Controller
         $posts = $category->posts()
             ->latest('id')
             ->select(['id', 'title', 'slug', 'excerpt', 'type', 'user_id', 'category_id', 'created_at', 'views_count'])
-            ->with(['user:id,name', 'category:id,name,slug,color'])
+            ->with(['user:id,name,username', 'category:id,name,slug,color'])
             ->withCount('comments', 'likes')
             ->when(auth()->check(), function ($query) {
                 $query->with(['likes' => function ($q) {
