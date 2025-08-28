@@ -17,6 +17,9 @@ class Attachment extends Model
      */
     protected $fillable = [
         'type',
+        'file_size',
+        'mime_type',
+        'download_count',
     ];
 
     public function post(): BelongsTo
