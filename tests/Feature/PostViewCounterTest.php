@@ -1,173 +1,152 @@
 <?php
 
-namespace Tests\Feature;
-
 use App\Models\Post;
 use App\Models\User;
 use App\Services\PostViewService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class PostViewCounterTest extends TestCase
-{
-    use RefreshDatabase;
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-    public function test_view_counter_increments_on_first_visit(): void
-    {
-        $user = User::factory()->create();
-        $post = Post::factory()->create();
+test('view counter increments on first visit', function () {
+    $user = User::factory()->create();
+    $post = Post::factory()->create();
 
-        $this->assertEquals(0, $post->views_count);
+    expect($post->views_count)->toEqual(0);
 
-        // Visit the post page
-        $response = $this->actingAs($user)->get(route('posts.show', $post->slug));
+    // Visit the post page
+    $response = $this->actingAs($user)->get(route('posts.show', $post->slug));
 
-        $response->assertStatus(200);
+    $response->assertStatus(200);
 
-        // Refresh the post to get updated view count
-        $post->refresh();
-        $this->assertEquals(1, $post->views_count);
-    }
+    // Refresh the post to get updated view count
+    $post->refresh();
+    expect($post->views_count)->toEqual(1);
+});
 
-    public function test_view_counter_does_not_increment_on_duplicate_visit(): void
-    {
-        $user = User::factory()->create();
-        $post = Post::factory()->create();
+test('view counter does not increment on duplicate visit', function () {
+    $user = User::factory()->create();
+    $post = Post::factory()->create();
 
-        // Start a session for the test
-        $this->startSession();
+    // Start a session for the test
+    $this->startSession();
 
-        // Manually create the service with proper request that has session
-        $request = request();
-        $request->setLaravelSession($this->app['session.store']);
-        $viewService = new PostViewService($request);
+    // Manually create the service with proper request that has session
+    $request = request();
+    $request->setLaravelSession($this->app['session.store']);
+    $viewService = new PostViewService($request);
 
-        // First call should return true and increment
-        $result1 = $viewService->recordView($post);
-        $this->assertTrue($result1);
-        $post->refresh();
-        $this->assertEquals(1, $post->views_count);
+    // First call should return true and increment
+    $result1 = $viewService->recordView($post);
+    expect($result1)->toBeTrue();
+    $post->refresh();
+    expect($post->views_count)->toEqual(1);
 
-        // Second call should return false (duplicate) and not increment
-        $result2 = $viewService->recordView($post);
-        $this->assertFalse($result2);
-        $post->refresh();
-        $this->assertEquals(1, $post->views_count); // Should not increment
-    }
+    // Second call should return false (duplicate) and not increment
+    $result2 = $viewService->recordView($post);
+    expect($result2)->toBeFalse();
+    $post->refresh();
+    expect($post->views_count)->toEqual(1);
+    // Should not increment
+});
 
-    public function test_view_counter_with_session_persistence_across_http_requests(): void
-    {
-        $user = User::factory()->create();
-        $post = Post::factory()->create();
+test('view counter with session persistence across http requests', function () {
+    $user = User::factory()->create();
+    $post = Post::factory()->create();
 
-        // Note: This test demonstrates that HTTP-based testing with session persistence
-        // is complex in Laravel. In practice, the session-based duplicate prevention
-        // works correctly in real applications, but requires special handling in tests.
+    // Note: This test demonstrates that HTTP-based testing with session persistence
+    // is complex in Laravel. In practice, the session-based duplicate prevention
+    // works correctly in real applications, but requires special handling in tests.
+    // For the purpose of this test, let's verify that the same authenticated user
+    // visiting the same post in rapid succession doesn't inflate the counter
+    // First visit
+    $this->actingAs($user)->get(route('posts.show', $post->slug));
+    $post->refresh();
+    $firstCount = $post->views_count;
 
-        // For the purpose of this test, let's verify that the same authenticated user
-        // visiting the same post in rapid succession doesn't inflate the counter
+    // Immediate second visit (different session, but same user)
+    $this->actingAs($user)->get(route('posts.show', $post->slug));
+    $post->refresh();
+    $secondCount = $post->views_count;
 
-        // First visit
-        $this->actingAs($user)->get(route('posts.show', $post->slug));
-        $post->refresh();
-        $firstCount = $post->views_count;
+    // The view count may increment due to new session, but we can verify
+    // that our service logic works correctly in isolation
+    expect($secondCount)->toBeGreaterThanOrEqual($firstCount);
+    expect($secondCount)->toBeLessThanOrEqual($firstCount + 1);
+});
 
-        // Immediate second visit (different session, but same user)
-        $this->actingAs($user)->get(route('posts.show', $post->slug));
-        $post->refresh();
-        $secondCount = $post->views_count;
+test('different users increment view counter', function () {
+    $user1 = User::factory()->create();
+    $user2 = User::factory()->create();
+    $post = Post::factory()->create();
 
-        // The view count may increment due to new session, but we can verify
-        // that our service logic works correctly in isolation
-        $this->assertGreaterThanOrEqual($firstCount, $secondCount);
-        $this->assertLessThanOrEqual($firstCount + 1, $secondCount);
-    }
+    // User 1 visits
+    $this->actingAs($user1)->get(route('posts.show', $post->slug));
+    $post->refresh();
+    expect($post->views_count)->toEqual(1);
 
-    public function test_different_users_increment_view_counter(): void
-    {
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
-        $post = Post::factory()->create();
+    // User 2 visits (different user)
+    $this->actingAs($user2)->get(route('posts.show', $post->slug));
+    $post->refresh();
+    expect($post->views_count)->toEqual(2);
+});
 
-        // User 1 visits
-        $this->actingAs($user1)->get(route('posts.show', $post->slug));
-        $post->refresh();
-        $this->assertEquals(1, $post->views_count);
+test('anonymous users cannot increment view counter', function () {
+    $post = Post::factory()->create();
 
-        // User 2 visits (different user)
-        $this->actingAs($user2)->get(route('posts.show', $post->slug));
-        $post->refresh();
-        $this->assertEquals(2, $post->views_count);
-    }
+    // Anonymous visit
+    $response = $this->get(route('posts.show', $post->slug));
+    $response->assertRedirect('/login');
+    $response->assertStatus(302);
 
-    /**
-     * This test is already handled inside {@see PostCrudTest::test_guest_cannot_view_index_or_show()}, but for
-     * completeness, we will also include the test here in case we ever allow guests to be able to view posts.
-     */
-    public function test_anonymous_users_cannot_increment_view_counter(): void
-    {
+    $post->refresh();
+    expect($post->views_count)->toEqual(0);
+});
 
-        $post = Post::factory()->create();
+test('post view service records views correctly', function () {
+    $post = Post::factory()->create();
 
-        // Anonymous visit
-        $response = $this->get(route('posts.show', $post->slug));
-        $response->assertRedirect('/login');
-        $response->assertStatus(302);
+    // Start a session for the test
+    $this->startSession();
 
-        $post->refresh();
-        $this->assertEquals(0, $post->views_count);
-    }
+    // Create service with proper request that has session
+    $request = request();
+    $request->setLaravelSession($this->app['session.store']);
+    $viewService = new PostViewService($request);
 
-    public function test_post_view_service_records_views_correctly(): void
-    {
-        $post = Post::factory()->create();
+    // First view should be recorded
+    $result = $viewService->recordView($post);
+    expect($result)->toBeTrue();
+    expect($viewService->getViewCount($post))->toEqual(1);
 
-        // Start a session for the test
-        $this->startSession();
+    // Second view should not be recorded (duplicate)
+    $result = $viewService->recordView($post);
+    expect($result)->toBeFalse();
+    expect($viewService->getViewCount($post))->toEqual(1);
+});
 
-        // Create service with proper request that has session
-        $request = request();
-        $request->setLaravelSession($this->app['session.store']);
-        $viewService = new PostViewService($request);
+test('view count displays in post index', function () {
+    $user = User::factory()->create();
+    $post = Post::factory()->create(['views_count' => 42]);
 
-        // First view should be recorded
-        $result = $viewService->recordView($post);
-        $this->assertTrue($result);
-        $this->assertEquals(1, $viewService->getViewCount($post));
+    $response = $this->actingAs($user)->get(route('posts.index'));
 
-        // Second view should not be recorded (duplicate)
-        $result = $viewService->recordView($post);
-        $this->assertFalse($result);
-        $this->assertEquals(1, $viewService->getViewCount($post));
-    }
+    $response->assertStatus(200);
+    $response->assertInertia(fn($assert) => $assert
+        ->component('Posts/Index')
+        ->has('posts.data.0')
+        ->where('posts.data.0.views_count', 42)
+    );
+});
 
-    public function test_view_count_displays_in_post_index(): void
-    {
-        $user = User::factory()->create();
-        $post = Post::factory()->create(['views_count' => 42]);
+test('view count displays in post show', function () {
+    $user = User::factory()->create();
+    $post = Post::factory()->create(['views_count' => 123]);
 
-        $response = $this->actingAs($user)->get(route('posts.index'));
+    $response = $this->actingAs($user)->get(route('posts.show', $post->slug));
 
-        $response->assertStatus(200);
-        $response->assertInertia(fn($assert) => $assert
-            ->component('Posts/Index')
-            ->has('posts.data.0')
-            ->where('posts.data.0.views_count', 42)
-        );
-    }
-
-    public function test_view_count_displays_in_post_show(): void
-    {
-        $user = User::factory()->create();
-        $post = Post::factory()->create(['views_count' => 123]);
-
-        $response = $this->actingAs($user)->get(route('posts.show', $post->slug));
-
-        $response->assertStatus(200);
-        $response->assertInertia(fn($assert) => $assert
-            ->component('Posts/Show')
-            ->has('post')
-            ->where('post.views_count', 124) // Should be incremented by the visit
-        );
-    }
-}
+    $response->assertStatus(200);
+    $response->assertInertia(fn($assert) => $assert
+        ->component('Posts/Show')
+        ->has('post')
+        ->where('post.views_count', 124) // Should be incremented by the visit
+    );
+});
