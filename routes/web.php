@@ -3,6 +3,7 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FeedController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserPostController;
@@ -38,7 +39,12 @@ Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->
 
 // Wiki
 
+// Feed
+Route::get('/feed', [FeedController::class, 'index'])->middleware(['auth'])->name('feed');
+
 // Tags
+Route::get('/tags', [TagController::class, 'index'])->middleware(['auth'])->name('tags.index');
+Route::get('/tags/{tag}', [TagController::class, 'show'])->middleware(['auth'])->name('tags.show');
 
 // Comments routes
 Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->middleware(['auth'])->name('posts.comments.store');
