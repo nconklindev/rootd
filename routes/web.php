@@ -38,10 +38,6 @@ Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->
 
 // Wiki
 
-// Followers
-
-// Following
-
 // Tags
 
 // Comments routes
