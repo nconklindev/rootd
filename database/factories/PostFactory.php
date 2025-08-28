@@ -21,7 +21,7 @@ class PostFactory extends Factory
             'title' => $title,
             'slug' => Str::slug($title),
             'content' => $this->faker->paragraphs(random_int(2, 10), true),
-            'excerpt' => $this->faker->sentences(4, true),
+            'excerpt' => $this->faker->sentences(2, true),
             'type' => $this->faker->randomElement(PostType::cases())->value,
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
