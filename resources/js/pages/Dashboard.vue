@@ -13,6 +13,8 @@ interface UserStats {
     total_likes_given: number;
     total_likes_received: number;
     total_views: number;
+    total_followers?: number;
+    total_following?: number;
 }
 
 interface RecentActivity {
@@ -150,7 +152,7 @@ const getBarHeight = (value: number) => {
         </div>
 
         <!-- Stats Overview -->
-        <div class="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div class="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             <Card>
                 <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle class="text-sm font-medium">Total Posts</CardTitle>
@@ -197,12 +199,23 @@ const getBarHeight = (value: number) => {
 
             <Card>
                 <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle class="text-sm font-medium">Engagement</CardTitle>
+                    <CardTitle class="text-sm font-medium">Followers</CardTitle>
                     <TrendingUp class="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div class="text-2xl font-bold">{{ formatNumber(userStats.total_likes_given) }}</div>
-                    <p class="text-xs text-muted-foreground">Likes given</p>
+                    <div class="text-2xl font-bold">{{ formatNumber(userStats.total_followers || 0) }}</div>
+                    <p class="text-xs text-muted-foreground">followers</p>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle class="text-sm font-medium">Following</CardTitle>
+                    <TrendingUp class="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div class="text-2xl font-bold">{{ formatNumber(userStats.total_following || 0) }}</div>
+                    <p class="text-xs text-muted-foreground">following</p>
                 </CardContent>
             </Card>
         </div>
