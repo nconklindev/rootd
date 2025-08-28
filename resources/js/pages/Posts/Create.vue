@@ -46,6 +46,10 @@ const form = useForm({
     description: '',
 });
 
+const isFormValid = computed(() => {
+    return form.title && form.content && form.category_id && form.type;
+});
+
 // Create a computed property that updates the placeholder text for the title based on the selected post type
 // Useful for UX
 const titlePlaceholder = computed(() => {
@@ -143,8 +147,8 @@ function submit(): void {
                     <TipTapEditor
                         id="content"
                         v-model="form.content"
-                        placeholder="Write your content here..."
                         class="w-full shadow-xs transition-[color,box-shadow] outline-none focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50"
+                        placeholder="Write your content here..."
                     />
                     <InputError :message="form.errors.content" />
                 </div>
@@ -172,7 +176,7 @@ function submit(): void {
                 <progress v-if="form.progress" :value="form.progress.percentage" max="100">{{ form.progress.percentage }}%</progress>
 
                 <div class="pt-2">
-                    <Button type="submit">Create</Button>
+                    <Button :disabled="isFormValid" type="submit">Create</Button>
                 </div>
             </form>
         </div>
