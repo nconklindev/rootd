@@ -133,51 +133,27 @@ class PostController extends Controller
     {
         $this->authorize('create', Post::class);
 
-        $data = $request->validated();
+        // Create a new Post instance and fill it with validated data
+        $post = new Post();
+        $post->fill($request->validated());
+        $post->user_id = $request->user()->id;
 
-        $post = $request->user()->posts()->create([
-            'title' => $data['title'],
-            'content' => $data['content'],
-            'body' => $data['body'] ?? null,
-            'excerpt' => $data['excerpt'] ?? null,
-            'type' => $data['type'] ?? 'article',
-        ]);
+        $post->save();
 
-        // Associate category using Eloquent relationship
-        if (!empty($data['category_id'])) {
-            $post->category()->associate($data['category_id']);
+        // Handle category association
+        if (!empty($request->validated()['category_id'])) {
+            $post->category()->associate($request->validated()['category_id']);
             $post->save();
         }
 
-        // Handle tags - create if they don't exist, then attach
-        $tagNames = $data['tags'] ?? [];
+        // Handle tags
+        $tagNames = $request->validated()['tags'] ?? [];
         if (!empty($tagNames)) {
             $tagIds = $this->createOrFindTags($tagNames);
             $post->tags()->attach($tagIds);
         }
 
-        return redirect()->route('posts.show', $post);
-    }
-
-    public function create(): Response
-    {
-        $this->authorize('create', Post::class);
-
-        return Inertia::render('Posts/Create', [
-            'postTypes' => collect(PostType::cases())->map(fn($type) => [
-                'value' => $type->value,
-                'label' => ucfirst($type->value),
-            ])->sortBy('label')->values(),
-            'categories' => Category::select(['id', 'name', 'slug', 'color'])
-                ->orderBy('name')
-                ->get()
-                ->map(fn($category) => [
-                    'value' => $category->id,
-                    'label' => $category->name,
-                    'slug' => $category->slug,
-                    'color' => $category->color,
-                ]),
-        ]);
+        return to_route('posts.show', $post);
     }
 
     /**
@@ -244,6 +220,27 @@ class PostController extends Controller
         ];
 
         return $colors[array_rand($colors)];
+    }
+
+    public function create(): Response
+    {
+        $this->authorize('create', Post::class);
+
+        return Inertia::render('Posts/Create', [
+            'postTypes' => collect(PostType::cases())->map(fn($type) => [
+                'value' => $type->value,
+                'label' => ucfirst($type->value),
+            ])->sortBy('label')->values(),
+            'categories' => Category::select(['id', 'name', 'slug', 'color'])
+                ->orderBy('name')
+                ->get()
+                ->map(fn($category) => [
+                    'value' => $category->id,
+                    'label' => $category->name,
+                    'slug' => $category->slug,
+                    'color' => $category->color,
+                ]),
+        ]);
     }
 
     public function edit(Post $post): Response

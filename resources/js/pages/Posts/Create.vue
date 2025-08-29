@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
 import SiteLayout from '@/layouts/SiteLayout.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 // Define the layout for this page
@@ -25,7 +25,7 @@ interface Category {
     slug: string;
     color: string;
 }
-
+const page = usePage();
 // Define props
 const props = defineProps<{
     postTypes: PostType[];
@@ -64,8 +64,10 @@ const titlePlaceholder = computed(() => {
 });
 
 function submit(): void {
-    form.post(route('posts.store'));
-    form.resetAndClearErrors();
+    form.post(route('posts.store'), {
+        preserveState: (page) => Object.keys(page.props.errors).length > 0,
+        preserveScroll: true,
+    });
 }
 </script>
 
@@ -84,7 +86,7 @@ function submit(): void {
                     <div class="md:col-span-2">
                         <label class="mb-1 block text-sm font-medium" for="title">Title</label>
                         <Input id="title" v-model="form.title" :placeholder="titlePlaceholder" required />
-                        <InputError :message="form.errors.title" />
+                        <InputError :message="form.errors.title" class="mt-2" />
                     </div>
 
                     <div class="w-full">
@@ -102,7 +104,7 @@ function submit(): void {
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-                        <InputError :message="form.errors.category_id" />
+                        <InputError :message="form.errors.category_id" class="mt-2" />
                     </div>
                 </div>
 
@@ -126,7 +128,7 @@ function submit(): void {
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-                        <InputError :message="form.errors.type" />
+                        <InputError :message="form.errors.type" class="mt-2" />
                     </div>
                 </div>
 
@@ -138,7 +140,7 @@ function submit(): void {
                         placeholder="https://thehackernews.com/2025/08/uk-government-drops-apple-encryption.html"
                         type="url"
                     />
-                    <InputError :message="form.errors.link" />
+                    <InputError :message="form.errors.link" class="mt-2" />
                 </div>
 
                 <!-- Content/Code Snippet -->
@@ -146,11 +148,12 @@ function submit(): void {
                     <label class="mb-1 block text-sm font-medium" for="content">Content</label>
                     <TipTapEditor
                         id="content"
+                        ref="contentInput"
                         v-model="form.content"
                         class="w-full shadow-xs transition-[color,box-shadow] outline-none focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50"
                         placeholder="Write your content here..."
                     />
-                    <InputError :message="form.errors.content" />
+                    <InputError :message="form.errors.content" class="mt-2" />
                 </div>
 
                 <!-- Tags -->
@@ -164,19 +167,20 @@ function submit(): void {
 
                         <TagsInputInput placeholder="Tags..." />
                     </TagsInput>
+                    <InputError :message="form.errors.tags" class="mt-2" />
                 </div>
 
                 <!-- File Attachment -->
                 <div class="grid w-full max-w-sm items-center gap-1.5">
                     <label class="mb-1 block text-sm font-medium" for="file">Attachment</label>
                     <Input id="file" :required="form.type === 'media'" class="w-full" type="file" @input="form.file = $event.target.files[0]" />
-                    <InputError :message="form.errors.file" />
+                    <InputError :message="form.errors.file" class="mt-2" />
                 </div>
 
                 <progress v-if="form.progress" :value="form.progress.percentage" max="100">{{ form.progress.percentage }}%</progress>
 
                 <div class="pt-2">
-                    <Button :disabled="!isFormValid" type="submit">Create</Button>
+                    <Button :disabled="!isFormValid || form.processing" type="submit">Create</Button>
                 </div>
             </form>
         </div>
