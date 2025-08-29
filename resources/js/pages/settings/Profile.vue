@@ -46,6 +46,7 @@ const isSettingsItemActive = (href: string) => {
 
 const form = useForm({
     name: user.name,
+    username: user.username,
     email: user.email,
 });
 
@@ -58,26 +59,23 @@ const submit = () => {
 
 <template>
     <Head title="Profile settings" />
-    
+
     <!-- Settings page with consistent SiteLayout structure -->
     <div class="container mx-auto px-6 py-10">
         <!-- Settings page header -->
-        <Heading title="Settings" description="Manage your profile and account settings" />
+        <Heading description="Manage your profile and account settings" title="Settings" />
 
         <!-- Settings layout with navigation and content -->
-        <div class="mt-8 flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
+        <div class="mt-8 flex flex-col space-y-8 lg:flex-row lg:space-y-0 lg:space-x-12">
             <!-- Settings navigation sidebar -->
             <aside class="w-full lg:w-64">
                 <nav class="flex flex-col space-y-1">
                     <Button
                         v-for="item in settingsNavItems"
                         :key="item.href"
-                        variant="ghost"
-                        :class="[
-                            'w-full justify-start',
-                            isSettingsItemActive(item.href) ? 'bg-muted' : ''
-                        ]"
+                        :class="['w-full justify-start', isSettingsItemActive(item.href) ? 'bg-muted' : '']"
                         as-child
+                        variant="ghost"
                     >
                         <Link :href="item.href">
                             {{ item.title }}
@@ -90,27 +88,29 @@ const submit = () => {
             <Separator class="lg:hidden" />
 
             <!-- Main content area -->
-            <div class="flex-1 max-w-2xl">
+            <div class="max-w-2xl flex-1">
                 <div class="space-y-8">
                     <!-- Profile information section -->
                     <div class="space-y-6">
-                        <HeadingSmall 
-                            description="Update your name and email address" 
-                            title="Profile information" 
-                        />
+                        <HeadingSmall description="Update your name, email address, or username" title="Profile information" />
 
                         <form class="space-y-6" @submit.prevent="submit">
                             <div class="grid gap-2">
                                 <Label for="name">Name</Label>
-                                <Input 
-                                    id="name" 
-                                    v-model="form.name" 
-                                    autocomplete="name" 
-                                    class="mt-1 block w-full" 
-                                    placeholder="Full name" 
-                                    required 
-                                />
+                                <Input id="name" v-model="form.name" autocomplete="name" class="mt-1 block w-full" placeholder="Full name" required />
                                 <InputError :message="form.errors.name" class="mt-2" />
+                            </div>
+                            <div class="grid gap-2">
+                                <Label for="username">Username</Label>
+                                <Input
+                                    id="username"
+                                    v-model="form.username"
+                                    autocomplete="username"
+                                    class="mt-1 block w-full"
+                                    placeholder="HackedByRobert1337"
+                                    required
+                                />
+                                <InputError :message="form.errors.username" class="mt-2" />
                             </div>
 
                             <div class="grid gap-2">
