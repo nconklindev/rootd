@@ -342,7 +342,7 @@ const popularCategories = siteData?.categories?.slice(0, 5) || [];
                     <Link
                         :class="[
                             'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                            route().current('profile.*') || route().current('settings.*')
+                            route().current('profile.*') || route().current('settings.*') || route().current('password.*')
                                 ? 'bg-primary text-primary-foreground'
                                 : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                         ]"
