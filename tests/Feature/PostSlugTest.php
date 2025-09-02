@@ -13,7 +13,6 @@ test('slug is generated from title on create', function () {
         'content' => 'Body',
         'excerpt' => 'Short',
         'type' => 'text',
-        'status' => 'draft',
     ]);
 
     expect($post->slug)->toBe('my-first-post');
@@ -27,7 +26,6 @@ test('slug updates when title changes and is unique', function () {
         'content' => 'Body',
         'excerpt' => 'Short',
         'type' => 'text',
-        'status' => 'draft',
     ]);
 
     $post2 = $user->posts()->create([
@@ -35,7 +33,6 @@ test('slug updates when title changes and is unique', function () {
         'content' => 'Body',
         'excerpt' => 'Short',
         'type' => 'text',
-        'status' => 'draft',
     ]);
 
     // Update second post to the same title
