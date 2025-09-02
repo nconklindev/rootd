@@ -33,7 +33,6 @@ class PostSeeder extends Seeder
                 [
                     'name' => $tagName,
                     'color' => $this->generateTagColor(),
-                    'description' => fake()->sentence(),
                 ]
             );
         });
