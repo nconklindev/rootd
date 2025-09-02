@@ -45,7 +45,7 @@ Route::get('/feed', [FeedController::class, 'index'])->middleware(['auth'])->nam
 
 // Tags
 Route::get('/tags', [TagController::class, 'index'])->middleware(['auth'])->name('tags.index');
-Route::get('/tags/{tag}', [TagController::class, 'show'])->middleware(['auth'])->name('tags.show');
+Route::get('/tags/{tag:slug}', [TagController::class, 'show'])->middleware(['auth'])->name('tags.show');
 
 // Comments routes
 Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->middleware(['auth'])->name('posts.comments.store');
