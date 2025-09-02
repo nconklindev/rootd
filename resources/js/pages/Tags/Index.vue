@@ -15,7 +15,6 @@ interface Tag {
     name: string;
     slug: string;
     color: string;
-    description?: string;
     posts_count: number;
 }
 
@@ -195,9 +194,6 @@ onUnmounted(() => {
                                 {{ tag.name }}
                             </h3>
                         </div>
-                        <p v-if="tag.description" class="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                            {{ tag.description }}
-                        </p>
                     </div>
                     <Badge :style="{ backgroundColor: tag.color + '20', color: tag.color }" class="ml-2 flex-shrink-0">
                         {{ tag.posts_count }} {{ tag.posts_count === 1 ? 'post' : 'posts' }}
@@ -209,7 +205,7 @@ onUnmounted(() => {
         <!-- Infinite Scroll Loader -->
         <WhenVisible
             :always="!reachedEnd"
-            :buffer="100"
+            :buffer="25"
             :params="{
                 only: ['tags', 'pagination', 'allTags'],
                 data: {
