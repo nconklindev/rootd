@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SiteLayout from '@/layouts/SiteLayout.vue';
-import { Head, Link, usePage, WhenVisible } from '@inertiajs/vue3';
+import { Head, Link, WhenVisible } from '@inertiajs/vue3';
 import { Search, Tag as TagIcon, TrendingUp, X } from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
@@ -35,7 +35,6 @@ const props = defineProps<{
     totalPosts?: number;
 }>();
 
-const page = usePage();
 const searchQuery = ref('');
 
 watch(
@@ -70,10 +69,6 @@ const filteredTags = computed(() => {
 
 const popularTags = computed(() => {
     return filteredTags.value.filter((tag) => tag.posts_count > 0).slice(0, 12);
-});
-
-const allTags = computed(() => {
-    return filteredTags.value.sort((a, b) => a.name.localeCompare(b.name));
 });
 
 const totalPosts = computed(() => {
