@@ -45,14 +45,6 @@ class PostSeeder extends Seeder
                 ->create();
 
             $posts->each(function (Post $post) use ($user, $users, $tags): void {
-
-                // Attachments
-                Attachment::factory()
-                    ->count(fake()->numberBetween(0, 3))
-                    ->for($post)
-                    ->for($user)
-                    ->create();
-
                 // Top-level comments
                 $topLevelComments = Comment::factory()
                     ->count(fake()->numberBetween(0, 4))
@@ -64,7 +56,7 @@ class PostSeeder extends Seeder
                 $topLevelComments->each(function (Comment $parent) use ($users): void {
                     Comment::factory()
                         ->count(fake()->numberBetween(0, 3))
-                        ->state(fn () => [
+                        ->state(fn() => [
                             'post_id' => $parent->post_id,
                             'parent_id' => $parent->id,
                             'user_id' => $users->random()->id,
