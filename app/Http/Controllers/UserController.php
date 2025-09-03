@@ -122,6 +122,7 @@ class UserController extends Controller
             'topPosts' => $topPosts,
             'categoryStats' => $categoryStats,
             'recentActivity' => $recentActivity,
+            'isFollowing' => auth()->check() ? auth()->user()->isFollowingUser($user) : false,
         ]);
     }
 

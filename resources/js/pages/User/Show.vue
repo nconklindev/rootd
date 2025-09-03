@@ -94,6 +94,7 @@ interface PageProps {
         success?: string;
         message?: string;
     };
+    isFollowing: boolean;
 }
 
 const props = defineProps<PageProps>();
@@ -138,7 +139,7 @@ const page = usePage();
                 <div v-if="$page.props.auth.user?.id !== profileUser.id" class="ml-auto">
                     <Button as-child>
                         <Link :href="route('users.follow', { user: profileUser.username })" as="button" class="ml-auto cursor-pointer" method="post"
-                            >Follow
+                            >{{ !props.isFollowing ? 'Follow' : 'Unfollow' }}
                         </Link>
                     </Button>
                 </div>
@@ -206,7 +207,7 @@ const page = usePage();
         <div class="grid gap-6 lg:grid-cols-3 lg:grid-rows-1 lg:items-stretch">
             <!-- Recent Posts -->
             <div class="lg:col-span-2">
-                <Card class="h-full flex flex-col">
+                <Card class="flex h-full flex-col">
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2">
                             <PenTool class="h-5 w-5" />
@@ -272,7 +273,7 @@ const page = usePage();
             </div>
 
             <!-- Top Posts & Activity -->
-            <div class="flex flex-col gap-6 h-full">
+            <div class="flex h-full flex-col gap-6">
                 <!-- Top Posts -->
                 <Card>
                     <CardHeader>
@@ -323,7 +324,7 @@ const page = usePage();
                 </Card>
 
                 <!-- Recent Activity -->
-                <Card class="flex-1 flex flex-col">
+                <Card class="flex flex-1 flex-col">
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2">
                             <Clock class="h-5 w-5" />
@@ -331,7 +332,7 @@ const page = usePage();
                         </CardTitle>
                         <CardDescription>Last 30 days</CardDescription>
                     </CardHeader>
-                    <CardContent class="flex-1 flex flex-col">
+                    <CardContent class="flex flex-1 flex-col">
                         <div v-if="recentActivity.length === 0" class="py-8 text-center text-muted-foreground">
                             <Activity class="mx-auto mb-2 h-8 w-8 opacity-50" />
                             <p>No recent activity</p>
