@@ -36,9 +36,7 @@ const props = defineProps<{
 const form = useForm({
     title: '',
     content: '',
-    excerpt: '',
     category_id: '',
-    body: '',
     type: 'text',
     file: null,
     tags: [],
