@@ -16,8 +16,10 @@ class Attachment extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'type',
+        'user_id',
         'file_size',
+        'file_path',
+        'original_filename',
         'mime_type',
         'download_count',
     ];
