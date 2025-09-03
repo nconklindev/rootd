@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Separator } from '@/components/ui/separator';
 import { Link, router } from '@inertiajs/vue3';
-import { Eye, FileText, Heart, Image, MessageSquareMoreIcon } from 'lucide-vue-next';
+import { Eye, FileText, Heart, Image, MessageSquareMoreIcon, Paperclip } from 'lucide-vue-next';
 
 interface Post {
     id: number;
@@ -12,6 +12,7 @@ interface Post {
     views_count?: number;
     comments_count?: number;
     likes_count?: number;
+    attachments_count?: number;
     type_icon: string;
     user?: {
         name: string;
@@ -113,6 +114,10 @@ const getIconComponent = (iconName: string) => {
                     <div class="flex items-center gap-x-1.5">
                         <Heart class="size-4 text-zinc-300" />
                         <span class="text-xs sm:text-sm">{{ post.likes_count ?? 0 }}</span>
+                    </div>
+                    <div v-if="post.attachments_count && post.attachments_count > 0" class="flex items-center gap-x-1.5">
+                        <Paperclip class="size-4 text-zinc-300" />
+                        <span class="text-xs sm:text-sm">{{ post.attachments_count }}</span>
                     </div>
                 </div>
             </div>
