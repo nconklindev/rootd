@@ -5,7 +5,7 @@ import SiteLayout from '@/layouts/SiteLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/tokyo-night-dark.css';
-import { ArrowLeft, Eye, Heart, MessageSquareMoreIcon } from 'lucide-vue-next';
+import { ArrowLeft, Download, Eye, FileText, Heart, MessageSquareMoreIcon } from 'lucide-vue-next';
 import { computed, nextTick, onMounted } from 'vue';
 
 // Highlight code blocks after component mounts and DOM is ready
@@ -74,6 +74,11 @@ const toggleLike = (): void => {
             },
         );
     }
+};
+
+// Helper function to check if file is an image
+const isImage = (mimeType: string): boolean => {
+    return mimeType.startsWith('image/');
 };
 </script>
 
@@ -150,6 +155,61 @@ const toggleLike = (): void => {
                     <div v-else class="flex items-center gap-2 text-muted-foreground">
                         <Heart class="h-4 w-4" />
                         <span class="text-xs sm:text-sm">{{ likesCount }} {{ likesCount === 1 ? 'like' : 'likes' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attachments Section -->
+        <div v-if="post.attachments && post.attachments.length > 0" class="mt-10 rounded border bg-card p-6">
+            <h2 class="mb-4 text-xl font-semibold">Attachments</h2>
+
+            <div class="space-y-4">
+                <div v-for="attachment in post.attachments" :key="attachment.id" class="flex items-start space-x-4 rounded border p-4">
+                    <!-- Image Preview -->
+                    <div v-if="isImage(attachment.mime_type)" class="flex-shrink-0">
+                        <img
+                            :alt="attachment.original_filename"
+                            :src="attachment.url"
+                            class="max-h-64 max-w-xs rounded border object-cover"
+                            loading="lazy"
+                        />
+                    </div>
+
+                    <!-- File Icon for Non-Images -->
+                    <div v-else class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded border bg-muted">
+                        <FileText class="h-8 w-8 text-muted-foreground" />
+                    </div>
+
+                    <!-- File Details -->
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h3 class="truncate font-medium text-foreground">{{ attachment.original_filename }}</h3>
+                                <p class="mt-1 text-sm text-muted-foreground">{{ attachment.file_size }} • {{ attachment.mime_type }}</p>
+                                <p v-if="attachment.download_count > 0" class="mt-1 text-xs text-muted-foreground">
+                                    Downloaded {{ attachment.download_count }} {{ attachment.download_count === 1 ? 'time' : 'times' }}
+                                </p>
+                            </div>
+
+                            <!-- Download Button -->
+                            <!-- TODO: Downloading doesn't increment the count -->
+                            <a
+                                :download="attachment.original_filename"
+                                :href="attachment.url"
+                                class="flex items-center gap-2 rounded border px-3 py-2 text-sm transition-colors hover:bg-muted"
+                                rel="noopener"
+                                target="_blank"
+                            >
+                                <Download class="h-4 w-4" />
+                                Download
+                            </a>
+                        </div>
+
+                        <!-- Image Caption for Images (if needed later) -->
+                        <div v-if="isImage(attachment.mime_type)" class="mt-3">
+                            <!-- You can add image-specific actions or captions here -->
+                        </div>
                     </div>
                 </div>
             </div>
