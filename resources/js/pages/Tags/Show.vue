@@ -6,8 +6,6 @@ import SiteLayout from '@/layouts/SiteLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, Calendar, Eye, Hash, MessageCircle, TrendingUp, Users } from 'lucide-vue-next';
 
-defineOptions({ layout: SiteLayout });
-
 interface Post {
     id: number;
     title: string;
@@ -38,14 +36,15 @@ interface Tag {
     posts?: Post[];
 }
 
-const props = defineProps<{ tag: Tag }>();
+defineProps<{ tag: Tag }>();
+defineOptions({ layout: SiteLayout });
 
 const formatDate = (dateString: string) => {
     if (!dateString) return '';
 
     const date = new Date(dateString);
 
-    // Check if date is valid
+    // Check if the date is valid
     if (isNaN(date.getTime())) return dateString;
 
     return date.toLocaleDateString('en-US', {
@@ -67,7 +66,10 @@ const getPostExcerpt = (content: string, length = 150) => {
     <div class="container mx-auto min-w-0 px-6 py-10">
         <!-- Back Navigation -->
         <div class="mb-6">
-            <Link class="inline-flex items-center space-x-2 text-sm text-muted-foreground transition-colors hover:text-foreground" href="/tags">
+            <Link
+                :href="route('tags.index')"
+                class="inline-flex items-center space-x-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
                 <ArrowLeft class="h-4 w-4" />
                 <span>Back to Tags</span>
             </Link>
@@ -218,7 +220,7 @@ const getPostExcerpt = (content: string, length = 150) => {
                                 </div>
                             </div>
                             <Button as-child size="sm" variant="outline">
-                                <Link :href="`/posts/${post.slug}`">Read More</Link>
+                                <Link :href="route('posts.show', post.slug)">Read More</Link>
                             </Button>
                         </div>
                     </CardContent>
@@ -233,7 +235,7 @@ const getPostExcerpt = (content: string, length = 150) => {
             <p class="mt-2 text-muted-foreground">There are no posts tagged with "{{ tag.name }}" yet.</p>
             <div class="mt-6">
                 <Button as-child>
-                    <Link href="/posts">Browse All Posts</Link>
+                    <Link :href="route('posts.index')">Browse All Posts</Link>
                 </Button>
             </div>
         </div>
