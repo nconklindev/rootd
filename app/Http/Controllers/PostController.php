@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Posts\BuildCommentTreeAction;
+use App\Actions\Posts\CreateOrFindTagsAction;
+use App\Actions\Posts\TransformPostAction;
 use App\Enum\PostType;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
@@ -10,11 +13,9 @@ use App\Models\Category;
 use App\Models\Comment;
 use App\Models\Like;
 use App\Models\Post;
-use App\Models\Tag;
 use App\Services\PostViewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -28,7 +29,7 @@ class PostController extends Controller
     {
     }
 
-    public function index(Request $request): Response
+    public function index(Request $request, TransformPostAction $transformPostAction): Response
     {
         $posts = Post::query()
             ->latest('id')
@@ -43,7 +44,8 @@ class PostController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        // Transform posts to include icon information and like status
+        $transformPostAction->handle($posts);
+
         $posts->through(function ($post) {
             $postType = PostType::from($post->type->value);
             $post->type_icon = $postType->icon();
@@ -61,7 +63,7 @@ class PostController extends Controller
         ]);
     }
 
-    public function show(Post $post): Response
+    public function show(Post $post, BuildCommentTreeAction $action): Response
     {
         // Authorize viewing
         $this->authorize('view', $post);
@@ -79,50 +81,15 @@ class PostController extends Controller
             }]);
         }
 
-        // Load all comments for this post with their authors (include avatar for display)
-        $allComments = $post->comments()
-            ->with(['user:id,name,username'])
-            ->withCount('likes')
-            ->when(auth()->check(), function ($query) {
-                $query->with(['likes' => function ($q) {
-                    $q->where('user_id', auth()->id());
-                }]);
-            })
-            ->orderBy('created_at')
-            ->get();
-
-        // Build a nested tree (children) from the flat list
-        /** @var Collection<int|null, Collection<int, Comment>> $byParent */
-        $byParent = $allComments->toBase()->groupBy('parent_id'); // Use key string instead of Closure to satisfy analyzers
-
-        $mapComment = function (Comment $comment) use (&$mapComment, $byParent): array {
-            /** @var Collection<int, Comment> $children */
-            $children = collect($byParent->get($comment->id)); // Wrap in collect to satisfy analyzers
-
-            return [
-                'id' => $comment->id,
-                'content' => $comment->content,
-                'created_at' => $comment->created_at,
-                'created_at_human' => $comment->created_at_human,
-                'user' => $comment->user?->only(['id', 'name', 'username', 'avatar']),
-                'likes_count' => $comment->likes_count,
-                'is_liked' => auth()->check() && $comment->likes->isNotEmpty(),
-                'children' => $children
-                    ->map(static fn(Comment $child): array => $mapComment($child))
-                    ->values(),
-            ];
-        };
-
-        $rootComments = collect($byParent->get(null))
-            ->map(static fn(Comment $c): array => $mapComment($c))
-            ->values();
+        // Build comment tree using the action
+        $comments = $action->handle($post);
 
         $title = $post->title ?? Str::headline($post->slug);
 
         return Inertia::render('Posts/Show', [
             'post' => $post->only(['id', 'title', 'slug', 'content', 'body', 'excerpt', 'type', 'views_count', 'created_at']) + [
-                    'author' => $post->user?->only(['id', 'name']),
-                    'comments' => $rootComments,
+                    'author' => $post->user?->only(['id', 'name', 'username']),
+                    'comments' => $comments,
                     'tags' => $post->tags->map(fn($tag) => $tag->only(['name', 'color']))->toArray(),
                     'attachments' => $post->attachments->map(fn($attachment) => [
                         'id' => $attachment->id,
@@ -140,7 +107,7 @@ class PostController extends Controller
         ]);
     }
 
-    public function store(StorePostRequest $request): RedirectResponse
+    public function store(StorePostRequest $request, CreateOrFindTagsAction $action): RedirectResponse
     {
         $this->authorize('create', Post::class);
 
@@ -161,7 +128,7 @@ class PostController extends Controller
         // Handle tags
         $tagNames = $request->validated()['tags'] ?? [];
         if (!empty($tagNames)) {
-            $tagIds = $this->createOrFindTags($tagNames);
+            $tagIds = $action->handle($tagNames);
             $post->tags()->attach($tagIds);
         }
 
@@ -186,84 +153,6 @@ class PostController extends Controller
         }
 
         return to_route('posts.show', $post);
-    }
-
-    /**
-     * Create or find tags by name and return their IDs.
-     * Now includes duplicate prevention through similarity checking.
-     *
-     * @param array<string> $tagNames
-     * @return array<int>
-     */
-    private function createOrFindTags(array $tagNames): array
-    {
-        $tagIds = [];
-
-        foreach ($tagNames as $tagName) {
-            // Clean up the tag name
-            $cleanName = trim($tagName);
-            if (empty($cleanName)) {
-                continue;
-            }
-
-            // First, check if there are similar existing tags
-            $similarTags = Tag::findSimilarTags($cleanName, 0.85);
-
-            if ($similarTags->isNotEmpty()) {
-                // Use the most similar existing tag instead of creating a new one
-                $existingTag = $similarTags->first();
-                $tagIds[] = $existingTag->id;
-
-                // Optionally log this for admin review
-                \Log::info("Tag suggestion used: '{$cleanName}' -> '{$existingTag->name}'");
-            } else {
-                // No similar tags found, create new one
-                $tag = Tag::firstOrCreate(
-                    ['name' => $cleanName],
-                    [
-                        'name' => $cleanName,
-                        'slug' => Str::slug($cleanName),
-                        'color' => $this->generateTagColor(),
-                    ]
-                );
-
-                $tagIds[] = $tag->id;
-            }
-        }
-
-        return array_unique($tagIds); // Remove any potential duplicates
-    }
-
-    /**
-     * Generate a random color with good contrast for tag display.
-     * Uses a curated list of colors that work well with light backgrounds.
-     */
-    private function generateTagColor(): string
-    {
-        $colors = [
-            '#3B82F6', // Blue
-            '#10B981', // Emerald
-            '#8B5CF6', // Violet
-            '#F59E0B', // Amber
-            '#EF4444', // Red
-            '#06B6D4', // Cyan
-            '#84CC16', // Lime
-            '#F97316', // Orange
-            '#EC4899', // Pink
-            '#6366F1', // Indigo
-            '#14B8A6', // Teal
-            '#A855F7', // Purple
-            '#DC2626', // Red-600
-            '#059669', // Emerald-600
-            '#7C3AED', // Violet-600
-            '#D97706', // Amber-600
-            '#0891B2', // Cyan-600
-            '#65A30D', // Lime-600
-            '#EA580C', // Orange-600
-            '#BE185D', // Pink-600
-        ];
-
-        return $colors[array_rand($colors)];
     }
 
     public function create(): Response
@@ -305,7 +194,7 @@ class PostController extends Controller
         ]);
     }
 
-    public function update(UpdatePostRequest $request, Post $post): RedirectResponse
+    public function update(UpdatePostRequest $request, Post $post, CreateOrFindTagsAction $action): RedirectResponse
     {
         $this->authorize('update', $post);
 
@@ -322,7 +211,7 @@ class PostController extends Controller
         // Handle tags - sync existing tags with new ones
         $tagNames = $data['tags'] ?? [];
         if (!empty($tagNames)) {
-            $tagIds = $this->createOrFindTags($tagNames);
+            $tagIds = $action->handle($tagNames);
             $post->tags()->sync($tagIds); // sync() replaces all current tags
         } else {
             $post->tags()->detach(); // Remove all tags if none provided
@@ -340,7 +229,7 @@ class PostController extends Controller
         return redirect()->route('posts.index');
     }
 
-    public function myPosts(): Response
+    public function myPosts(TransformPostAction $transformPostAction): Response
     {
         $posts = auth()->user()->posts()
             ->latest('id')
@@ -356,14 +245,7 @@ class PostController extends Controller
             ->withQueryString();
 
         // Transform posts to include icon information and like status
-        $posts->through(function ($post) {
-            $postType = PostType::from($post->type->value);
-            $post->type_icon = $postType->icon();
-            $post->type_label = $postType->label();
-            $post->is_liked = auth()->check() && $post->likes->isNotEmpty();
-
-            return $post;
-        });
+        $transformPostAction->handle($posts);
 
         return Inertia::render('Posts/MyPosts', [
             'posts' => $posts,
