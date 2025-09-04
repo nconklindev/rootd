@@ -29,7 +29,7 @@ interface Pagination {
 const props = defineProps<{
     tags: Tag[];
     pagination: Pagination;
-    allTagsCount: Tag[];
+    allTagsCount: number;
     totalTags?: number;
     totalPosts?: number;
 }>();
@@ -39,7 +39,7 @@ const searchQuery = ref('');
 watch(
     () => props.pagination.current_page,
     (newPage, oldPage) => {
-        // Skip on initial load
+        // Skip on the initial load
         if (oldPage === undefined) return;
 
         // If we moved to a higher page, append the new tags
@@ -59,11 +59,7 @@ const filteredTags = computed(() => {
         return allLoadedTags.value;
     }
 
-    return allLoadedTags.value.filter(
-        (tag) =>
-            tag.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-            tag.description?.toLowerCase().includes(searchQuery.value.toLowerCase()),
-    );
+    return allLoadedTags.value.filter((tag) => tag.name.toLowerCase().includes(searchQuery.value.toLowerCase()));
 });
 
 const popularTags = computed(() => {
@@ -237,12 +233,3 @@ onUnmounted(() => {
         </div>
     </div>
 </template>
-
-<style scoped>
-.line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-</style>
