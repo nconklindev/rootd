@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Number;
 
 readonly class PostViewService
 {
@@ -91,10 +92,7 @@ readonly class PostViewService
      */
     private function incrementViewCount(Post $post): void
     {
-        // Use atomic increment to handle concurrent requests properly
-        DB::table('posts')
-            ->where('id', $post->id)
-            ->increment('views_count');
+        Post::where('id', '=', $post->id)->increment('views_count');
 
         // Update the model instance to reflect the new count
         $post->refresh();
@@ -107,15 +105,7 @@ readonly class PostViewService
     {
         $count = $this->getViewCount($post);
 
-        if ($count < 1000) {
-            return (string)$count;
-        }
-
-        if ($count < 1000000) {
-            return number_format($count / 1000, 1) . 'K';
-        }
-
-        return number_format($count / 1000000, 1) . 'M';
+        Number::abbreviate($count);
     }
 
     /**
