@@ -140,7 +140,6 @@ const getPostExcerpt = (content: string, length = 150) => {
                     <Hash class="h-5 w-5 shrink-0" />
                     <span class="leading-none">Tag Information</span>
                 </CardTitle>
-                <CardDescription> Detailed information about the "{{ tag.name }}" tag </CardDescription>
             </CardHeader>
             <CardContent class="space-y-4">
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
