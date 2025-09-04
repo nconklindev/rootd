@@ -28,8 +28,8 @@ defineOptions({ layout: SiteLayout });
                         <div :style="{ backgroundColor: category.color }" class="h-4 w-4 flex-shrink-0 rounded-full" />
                         <div class="min-w-0 flex-1">
                             <h3 class="font-semibold group-hover:text-primary">{{ category.name }}</h3>
-                            <div class="mt-1 h-10">
-                                <p v-if="category.description" class="line-clamp-2 text-sm text-muted-foreground">
+                            <div class="mt-1">
+                                <p v-if="category.description" class="text-sm text-muted-foreground">
                                     {{ category.description }}
                                 </p>
                             </div>
