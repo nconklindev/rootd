@@ -1,11 +1,8 @@
 <script lang="ts" setup>
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
-import Document from '@tiptap/extension-document';
-import { BulletList, ListItem } from '@tiptap/extension-list';
-import Paragraph from '@tiptap/extension-paragraph';
-import Text from '@tiptap/extension-text';
 import { Color, TextStyle } from '@tiptap/extension-text-style';
 import StarterKit from '@tiptap/starter-kit';
 import { EditorContent, useEditor } from '@tiptap/vue-3';
@@ -33,21 +30,71 @@ const lowlight = createLowlight(all);
 const editor = useEditor({
     content: props.modelValue,
     extensions: [
-        Paragraph,
+        StarterKit.configure({
+            // Configure code blocks
+            codeBlock: false, // We'll use CodeBlockLowlight instead
+            bulletList: {
+                keepMarks: true,
+            },
+        }),
         Color,
         TextStyle,
-        Document,
-        Text,
-        BulletList,
-        ListItem,
-        StarterKit,
         CodeBlockLowlight.configure({
             lowlight,
+            enableTabIndentation: true,
         }),
     ],
     editorProps: {
         attributes: {
-            class: 'focus:outline-none max-w-none p-3 min-h-[120px]',
+            class: 'prose prose-zinc dark:prose-invert m-5 focus:outline-none focus:outline-none max-w-none min-h-[120px]',
+        },
+        handleKeyDown(view, event) {
+            if (!editor.value) return false;
+
+            const { state } = editor.value;
+            const { selection } = state;
+            const { $from } = selection;
+
+            // Handle Enter key
+            if (event.key === 'Enter') {
+                // Check if we're inside a code block (anywhere in the ancestry)
+                for (let i = $from.depth; i >= 0; i--) {
+                    if ($from.node(i).type.name === 'codeBlock') {
+                        return false; // Let default behavior handle code blocks
+                    }
+                }
+
+                // Check if we're inside a list item (anywhere in the ancestry)
+                for (let i = $from.depth; i >= 0; i--) {
+                    if ($from.node(i).type.name === 'listItem') {
+                        if (event.shiftKey) {
+                            // Shift+Enter in lists = hard break within the list item
+                            editor.value.commands.setHardBreak();
+                            return true;
+                        } else {
+                            // Regular Enter in lists = let default behavior (new list item)
+                            return false;
+                        }
+                    }
+                }
+
+                // Check if we're inside a blockquote (anywhere in the ancestry)
+                for (let i = $from.depth; i >= 0; i--) {
+                    if ($from.node(i).type.name === 'blockquote') {
+                        return false; // Let default behavior handle blockquotes
+                    }
+                }
+
+                // In regular paragraphs: Enter = hard break (unless Shift+Enter)
+                if ($from.parent.type.name === 'paragraph') {
+                    if (!event.shiftKey) {
+                        editor.value.commands.setHardBreak();
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         },
     },
     onUpdate: ({ editor }) => {
@@ -75,126 +122,290 @@ const toolbarButtonClass =
         <!-- Toolbar -->
         <div v-if="editor" class="flex flex-wrap items-center gap-1 border-b p-2">
             <!-- Text formatting -->
-            <Button
-                :class="toolbarButtonClass"
-                :data-active="editor.isActive('bold')"
-                size="icon"
-                type="button"
-                variant="ghost"
-                @click="editor.chain().focus().toggleBold().run()"
-            >
-                <Bold class="h-4 w-4" />
-            </Button>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            :class="toolbarButtonClass"
+                            :data-active="editor.isActive('bold')"
+                            size="icon"
+                            type="button"
+                            variant="ghost"
+                            @click="editor.chain().focus().toggleBold().run()"
+                        >
+                            <Bold class="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent avoid-collisions>
+                        <kbd><kbd>Ctrl</kbd>+<kbd>B</kbd></kbd>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
 
-            <Button
-                :class="toolbarButtonClass"
-                :data-active="editor.isActive('italic')"
-                size="icon"
-                type="button"
-                variant="ghost"
-                @click="editor.chain().focus().toggleItalic().run()"
-            >
-                <Italic class="h-4 w-4" />
-            </Button>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            :class="toolbarButtonClass"
+                            :data-active="editor.isActive('italic')"
+                            size="icon"
+                            type="button"
+                            variant="ghost"
+                            @click="editor.chain().focus().toggleItalic().run()"
+                        >
+                            <Italic class="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent avoid-collisions>
+                        <kbd><kbd>Ctrl</kbd>+<kbd>I</kbd></kbd>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
 
-            <Button
-                :class="toolbarButtonClass"
-                :data-active="editor.isActive('strike')"
-                size="icon"
-                type="button"
-                variant="ghost"
-                @click="editor.chain().focus().toggleStrike().run()"
-            >
-                <Strikethrough class="h-4 w-4" />
-            </Button>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            :class="toolbarButtonClass"
+                            :data-active="editor.isActive('strike')"
+                            size="icon"
+                            type="button"
+                            variant="ghost"
+                            @click="editor.chain().focus().toggleStrike().run()"
+                        >
+                            <Strikethrough class="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent avoid-collisions>
+                        <kbd><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></kbd>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
 
             <!-- Separator -->
             <div class="mx-1 h-6 w-px bg-border"></div>
 
             <!-- Lists -->
-            <Button
-                :class="toolbarButtonClass"
-                :data-active="editor.isActive('bulletList')"
-                size="icon"
-                type="button"
-                variant="ghost"
-                @click="editor.chain().focus().toggleBulletList().run()"
-            >
-                <List class="h-4 w-4" />
-            </Button>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            :class="toolbarButtonClass"
+                            :data-active="editor.isActive('bulletList')"
+                            size="icon"
+                            type="button"
+                            variant="ghost"
+                            @click="editor.chain().focus().toggleBulletList().run()"
+                        >
+                            <List class="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent avoid-collisions>
+                        <kbd><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>8</kbd></kbd>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
 
-            <Button
-                :class="toolbarButtonClass"
-                :data-active="editor.isActive('orderedList')"
-                size="icon"
-                type="button"
-                variant="ghost"
-                @click="editor.chain().focus().toggleOrderedList().run()"
-            >
-                <ListOrdered class="h-4 w-4" />
-            </Button>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            :class="toolbarButtonClass"
+                            :data-active="editor.isActive('orderedList')"
+                            size="icon"
+                            type="button"
+                            variant="ghost"
+                            @click="editor.chain().focus().toggleOrderedList().run()"
+                        >
+                            <ListOrdered class="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent avoid-collisions>
+                        <kbd><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>7</kbd></kbd>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
 
             <!-- Quote -->
-            <Button
-                :class="toolbarButtonClass"
-                :data-active="editor.isActive('blockquote')"
-                size="icon"
-                type="button"
-                variant="ghost"
-                @click="editor.chain().focus().toggleBlockquote().run()"
-            >
-                <Quote class="h-4 w-4" />
-            </Button>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            :class="toolbarButtonClass"
+                            :data-active="editor.isActive('blockquote')"
+                            size="icon"
+                            type="button"
+                            variant="ghost"
+                            @click="editor.chain().focus().toggleBlockquote().run()"
+                        >
+                            <Quote class="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent avoid-collisions>
+                        <kbd><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd></kbd>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
 
-            <Button
-                :class="toolbarButtonClass"
-                :data-active="editor.isActive('codeBlock')"
-                size="icon"
-                type="button"
-                variant="ghost"
-                @click="editor.chain().focus().toggleCodeBlock().run()"
-                ><Code
-            /></Button>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            :class="toolbarButtonClass"
+                            :data-active="editor.isActive('codeBlock')"
+                            size="icon"
+                            type="button"
+                            variant="ghost"
+                            @click="editor.chain().focus().toggleCodeBlock().run()"
+                            ><Code
+                        /></Button>
+                    </TooltipTrigger>
+                    <TooltipContent avoid-collisions>
+                        <kbd><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd></kbd>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
 
             <!-- Separator -->
             <div class="mx-1 h-6 w-px bg-border"></div>
 
             <!-- Undo/Redo -->
-            <Button
-                :class="toolbarButtonClass"
-                :disabled="!editor.can().undo()"
-                size="icon"
-                type="button"
-                variant="ghost"
-                @click="editor.chain().focus().undo().run()"
-            >
-                <Undo class="h-4 w-4" />
-            </Button>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            :class="toolbarButtonClass"
+                            :disabled="!editor.can().undo()"
+                            size="icon"
+                            type="button"
+                            variant="ghost"
+                            @click="editor.chain().focus().undo().run()"
+                        >
+                            <Undo class="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent avoid-collisions>
+                        <kbd><kbd>Ctrl</kbd>+<kbd>Z</kbd></kbd>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
 
-            <Button
-                :class="toolbarButtonClass"
-                :disabled="!editor.can().redo()"
-                size="icon"
-                type="button"
-                variant="ghost"
-                @click="editor.chain().focus().redo().run()"
-            >
-                <Redo class="h-4 w-4" />
-            </Button>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            :class="toolbarButtonClass"
+                            :disabled="!editor.can().redo()"
+                            size="icon"
+                            type="button"
+                            variant="ghost"
+                            @click="editor.chain().focus().redo().run()"
+                        >
+                            <Redo class="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent avoid-collisions>
+                        <kbd><kbd>Ctrl</kbd>+<kbd>Y</kbd></kbd>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
         </div>
 
         <!-- Editor Content -->
-        <EditorContent :editor="editor" class="min-h-[120px] [&_.ProseMirror]:min-h-[120px] [&_.ProseMirror]:outline-none" />
+        <EditorContent :editor="editor" class="min-h-[120px]" />
     </div>
 </template>
 
 <style scoped>
-/* Additional TipTap-specific styles if needed */
-:deep(.ProseMirror p.is-editor-empty:first-child::before) {
-    color: #adb5bd;
-    content: attr(data-placeholder);
-    float: left;
-    height: 0;
-    pointer-events: none;
+/* TipTap Editor Prose Styling */
+:deep(.prose) {
+    /* Reduce list spacing */
+
+    ul,
+    ol {
+        margin-top: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    li {
+        margin-top: 0;
+        margin-bottom: 0.25rem;
+    }
+
+    li:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Remove paragraph margins inside list items */
+
+    li p {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    /* Nested lists */
+
+    li > ul,
+    li > ol {
+        margin-top: 0.25rem;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Paragraph spacing */
+
+    p {
+        margin-top: 0;
+        margin-bottom: 0.75rem;
+    }
+
+    p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Code blocks */
+
+    pre {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+    }
+
+    /* Inline code */
+
+    code {
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+        font-size: 0.875em;
+    }
+
+    /* Blockquotes */
+
+    blockquote {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        padding-left: 1rem;
+        border-left-width: 4px;
+    }
+
+    /* First element margin */
+
+    > :first-child {
+        margin-top: 0;
+    }
+
+    /* Last element margin */
+
+    > :last-child {
+        margin-bottom: 0;
+    }
+
+    /* Hard breaks */
+
+    br {
+        display: block;
+        margin: 0.25rem 0;
+        content: '';
+    }
 }
 </style>
