@@ -106,14 +106,21 @@ const isImage = (mimeType: string): boolean => {
 
         <div class="rounded border bg-card p-6">
             <!-- Regular text content -->
-            <div class="max-w-none" v-html="post.content"></div>
+            <article>
+                <div class="prose max-w-none prose-zinc dark:prose-invert" v-html="post.content"></div>
+            </article>
 
             <!-- Mobile-optimized post metadata -->
             <div class="mt-6 space-y-4 text-sm text-muted-foreground">
                 <!-- Author row -->
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2">
-                        <span>By {{ post.author?.name ?? 'Unknown' }}</span>
+                        <span
+                            >By
+                            <Link :href="route('users.show', post.author?.username)" class="font-medium text-zinc-200 hover:text-primary">{{
+                                post.author?.name ?? 'Unknown'
+                            }}</Link></span
+                        >
                     </div>
                 </div>
 
@@ -188,7 +195,8 @@ const isImage = (mimeType: string): boolean => {
                                 <h3 class="truncate font-medium text-foreground">{{ attachment.original_filename }}</h3>
                                 <p class="mt-1 text-sm text-muted-foreground">{{ attachment.file_size }} • {{ attachment.mime_type }}</p>
                                 <p v-if="attachment.download_count > 0" class="mt-1 text-xs text-muted-foreground">
-                                    Downloaded {{ attachment.download_count }} {{ attachment.download_count === 1 ? 'time' : 'times' }}
+                                    Downloaded {{ attachment.download_count }}
+                                    {{ attachment.download_count === 1 ? 'time' : 'times' }}
                                 </p>
                             </div>
 
@@ -241,3 +249,102 @@ const isImage = (mimeType: string): boolean => {
         </div>
     </div>
 </template>
+
+<style scoped>
+/* Post Content Prose Styling - matches TipTap editor */
+:deep(.prose) {
+    /* Reduce list spacing */
+    ul, ol {
+        margin-top: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    li {
+        margin-top: 0;
+        margin-bottom: 0.25rem;
+    }
+    
+    li:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Remove paragraph margins inside list items */
+    li p {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+    
+    /* Nested lists */
+    li > ul, li > ol {
+        margin-top: 0.25rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Paragraph spacing */
+    p {
+        margin-top: 0;
+        margin-bottom: 0.75rem;
+    }
+    
+    p:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Code blocks */
+    pre {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: #1f2937;
+        overflow-x: auto;
+    }
+    
+    /* Inline code */
+    code {
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+        font-size: 0.875em;
+        background-color: #374151;
+    }
+    
+    /* Blockquotes */
+    blockquote {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        padding-left: 1rem;
+        border-left-width: 4px;
+        border-left-color: #6b7280;
+        font-style: italic;
+        color: #9ca3af;
+    }
+    
+    /* First element margin */
+    > :first-child {
+        margin-top: 0;
+    }
+    
+    /* Last element margin */
+    > :last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Hard breaks for proper line spacing */
+    br {
+        display: block;
+        margin: 0.25rem 0;
+        content: "";
+    }
+    
+    /* Remove excessive spacing from prose defaults */
+    h1, h2, h3, h4, h5, h6 {
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    h1:first-child, h2:first-child, h3:first-child, 
+    h4:first-child, h5:first-child, h6:first-child {
+        margin-top: 0;
+    }
+}
+</style>
