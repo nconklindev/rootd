@@ -14,39 +14,54 @@ class CategorySeeder extends Seeder
     {
         $categories = [
             [
-                'name' => 'Vulnerabilities & Vulnerability Management',
-                'description' => 'Advisories, CVEs, etc.',
-                'color' => '#3B82F6', // Blue
+                'name' => 'CTFs',
+                'description' => 'Hack a really hard machine on Hack the Box? Complete a Learning Path on TryHackMe? Or, did you do something else CTF related? Share it all here!',
+                'color' => '#10B981', // Vibrant Emerald
             ],
             [
-                'name' => 'Incident Response',
-                'description' => 'Playbooks, case studies, timelines, lessons learned',
-                'color' => '#10B981', // Green
-            ],
-            [
-                'name' => 'Security Operations',
-                'description' => 'Procedures, runbooks, dashboards',
-                'color' => '#EF4444', // Red
-            ],
-            [
-                'name' => 'Web Development',
-                'description' => 'Frontend, backend, and full-stack web development',
-                'color' => '#06B6D4', // Cyan
-            ],
-            [
-                'name' => 'Tools & Resources',
-                'description' => 'Development tools, utilities, and helpful resources',
-                'color' => '#84CC16', // Lime
+                'name' => 'Tools & Scripts',
+                'description' => 'Share all the fancy tools and scripts you\'ve written here!',
+                'color' => '#FBBF24', // Vibrant Amber
             ],
             [
                 'name' => 'Tutorials',
-                'description' => 'Step-by-step guides and educational content',
-                'color' => '#EC4899', // Pink
+                'description' => 'Have something you want to share on how to do something? Share it here.',
+                'color' => '#F59E0B', // Vibrant Orange
             ],
             [
-                'name' => 'Tools & Automation',
-                'description' => 'Custom scripts, tooling, CLIs, CI/CD jobs, executables',
-                'color' => '#F97316', // Orange
+                'name' => 'Industry News',
+                'description' => 'Share everything industry related from new vulnerabilities to articles and videos discussing Cybersecurity news.',
+                'color' => '#06B6D4', // Vibrant Cyan
+            ],
+            [
+                'name' => 'Engagements',
+                'description' => 'Discuss all things engagement related here. If your team is involved in something, share it with others and discuss.',
+                'color' => '#F472B6', // Vibrant Pink
+            ],
+            [
+                'name' => 'Certifications & Career',
+                'description' => 'Discuss everything career and certification related here. Share your recent accomplishments! Don\'t worry, it\'s okay to brag.',
+                'color' => '#EF4444', // Vibrant Red
+            ],
+            [
+                'name' => 'General',
+                'description' => 'General Security work topic for anything that doesn\'t fit into the other categories',
+                'color' => '#8B5CF6', // Vibrant Violet
+            ],
+            [
+                'name' => 'Red Team Readout',
+                'description' => 'All things Red Team. Where our Red Team members can discuss things happening in their organization and others can come and read and discuss.',
+                'color' => '#F87171' // Vibrant Light Red
+            ],
+            [
+                'name' => 'Blue Team Backyard',
+                'description' => 'All things Blue Team. Where our Blue Team members can discuss things happening in their organization and others can come and read and discuss.',
+                'color' => '#60A5FA' // Vibrant Light Blue
+            ],
+            [
+                'name' => 'Home Lab',
+                'description' => 'Created something cool at home on that dusty old PC you want to share with others? Tell us what you did!',
+                'color' => '#34D399' // Vibrant Mint Green
             ]
         ];
 
