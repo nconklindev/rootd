@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -21,8 +22,10 @@ class DatabaseSeeder extends Seeder
 
         // Seed categories first, then posts, comments, and attachments
         $this->call([
+            TestPermissionSeeder::class,
             CategorySeeder::class,
             PostSeeder::class,
+            VulnerabilitySeeder::class
         ]);
     }
 }
