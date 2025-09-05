@@ -8,6 +8,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserPostController;
+use App\Http\Controllers\VulnerabilityController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -40,6 +41,17 @@ Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->
 
 // Wiki
 
+// Vulnerability Database
+Route::middleware(['auth', 'permission:view_vulnerabilities'])->group(function () {
+    Route::get('/vulnerabilities', [VulnerabilityController::class, 'index'])->name('vulnerability.index');
+    Route::get('/vulnerabilities/{vulnerability}', [VulnerabilityController::class, 'show'])->name('vulnerability.show');
+});
+
+Route::middleware(['auth', 'permission:create_vulnerabilities'])->group(function () {
+    Route::get('/vulnerabilities/create', [VulnerabilityController::class, 'create'])->name('vulnerability.create');
+    Route::post('/vulnerabilities', [VulnerabilityController::class, 'store'])->name('vulnerability.store');
+});
+
 // Feed
 Route::get('/feed', [FeedController::class, 'index'])->middleware(['auth'])->name('feed');
 
@@ -52,5 +64,5 @@ Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->midd
 Route::post('/comments/{comment}/like', [CommentController::class, 'like'])->middleware(['auth'])->name('comments.like');
 Route::delete('/comments/{comment}/like', [CommentController::class, 'unlike'])->middleware(['auth'])->name('comments.unlike');
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';
