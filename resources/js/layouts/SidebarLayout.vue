@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Badge } from '@/components/ui/badge';
 import { Link, usePage } from '@inertiajs/vue3';
-import { FileText, HelpCircle, Home, MessageSquare, PlusCircle, Rss, Settings, Tag, TrendingUp, User } from 'lucide-vue-next';
+import { FileText, HelpCircle, Home, PlusCircle, Rss, Settings, ShieldAlert, Tag, TrendingUp, User } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const props = defineProps({
@@ -75,7 +75,13 @@ const mainNavItems = [
     { href: '/', icon: Home, label: 'Home', routeName: 'home', component: 'Welcome' },
     { href: route('posts.index'), icon: FileText, label: 'Posts', routeName: 'posts.index', component: 'Posts/Index' },
     { href: route('tags.index'), icon: Tag, label: 'Tags', routeName: 'tags.index', component: 'Tags/Index' },
-    { href: '/discussions', icon: MessageSquare, label: 'Discussions', routeName: 'discussions', component: 'Discussions/Index' },
+    {
+        href: '/vulnerabilities',
+        icon: ShieldAlert,
+        label: 'Vulnerability Database',
+        routeName: 'vulnerability.index',
+        component: 'Vulnerabilities/Index',
+    },
 ];
 
 const myStuffItems = [
@@ -83,6 +89,7 @@ const myStuffItems = [
     { href: '/feed', icon: Rss, label: 'Feed', routeName: 'feed', component: 'Feed' },
     { href: '/posts/create', icon: PlusCircle, label: 'Create Post', routeName: 'posts.create', component: 'Posts/Create' },
     { href: '/posts/me', icon: FileText, label: 'My Posts', routeName: 'posts.me', component: 'Posts/MyPosts' },
+    // TODO: Route for user submitted vulns
 ];
 
 // Helper function to check if navigation item is active
