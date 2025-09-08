@@ -25,9 +25,7 @@ class PostController extends Controller
 {
     public function __construct(
         private readonly PostViewService $postViewService
-    )
-    {
-    }
+    ) {}
 
     public function index(Request $request, TransformPostAction $transformPostAction): Response
     {
@@ -58,7 +56,7 @@ class PostController extends Controller
         return Inertia::render('Posts/Index', [
             'posts' => $posts,
             'can' => [
-                'create' => (bool)$request->user(),
+                'create' => (bool) $request->user(),
             ],
         ]);
     }
@@ -88,21 +86,21 @@ class PostController extends Controller
 
         return Inertia::render('Posts/Show', [
             'post' => $post->only(['id', 'title', 'slug', 'content', 'body', 'excerpt', 'type', 'views_count', 'created_at']) + [
-                    'author' => $post->user?->only(['id', 'name', 'username']),
-                    'comments' => $comments,
-                    'tags' => $post->tags->map(fn($tag) => $tag->only(['name', 'color']))->toArray(),
-                    'attachments' => $post->attachments->map(fn($attachment) => [
-                        'id' => $attachment->id,
-                        'original_filename' => $attachment->original_filename,
-                        'file_path' => $attachment->file_path,
-                        'file_size' => Number::fileSize($attachment->file_size),
-                        'mime_type' => $attachment->mime_type,
-                        'download_count' => $attachment->download_count,
-                        'url' => asset('storage/' . $attachment->file_path),
-                    ])->toArray(),
-                    'likes_count' => $post->likes_count,
-                    'is_liked' => auth()->check() && $post->likes->isNotEmpty(),
-                ],
+                'author' => $post->user?->only(['id', 'name', 'username']),
+                'comments' => $comments,
+                'tags' => $post->tags->map(fn ($tag) => $tag->only(['name', 'color']))->toArray(),
+                'attachments' => $post->attachments->map(fn ($attachment) => [
+                    'id' => $attachment->id,
+                    'original_filename' => $attachment->original_filename,
+                    'file_path' => $attachment->file_path,
+                    'file_size' => Number::fileSize($attachment->file_size),
+                    'mime_type' => $attachment->mime_type,
+                    'download_count' => $attachment->download_count,
+                    'url' => asset('storage/'.$attachment->file_path),
+                ])->toArray(),
+                'likes_count' => $post->likes_count,
+                'is_liked' => auth()->check() && $post->likes->isNotEmpty(),
+            ],
             'title' => $title,
         ]);
     }
@@ -120,14 +118,14 @@ class PostController extends Controller
         $post->save();
 
         // Handle category association
-        if (!empty($request->validated()['category_id'])) {
+        if (! empty($request->validated()['category_id'])) {
             $post->category()->associate($request->validated()['category_id']);
             $post->save();
         }
 
         // Handle tags
         $tagNames = $request->validated()['tags'] ?? [];
-        if (!empty($tagNames)) {
+        if (! empty($tagNames)) {
             $tagIds = $action->handle($tagNames);
             $post->tags()->attach($tagIds);
         }
@@ -160,14 +158,14 @@ class PostController extends Controller
         $this->authorize('create', Post::class);
 
         return Inertia::render('Posts/Create', [
-            'postTypes' => collect(PostType::cases())->map(fn($type) => [
+            'postTypes' => collect(PostType::cases())->map(fn ($type) => [
                 'value' => $type->value,
                 'label' => ucfirst($type->value),
             ])->sortBy('label')->values(),
             'categories' => Category::select(['id', 'name', 'slug', 'color'])
                 ->orderBy('name')
                 ->get()
-                ->map(fn($category) => [
+                ->map(fn ($category) => [
                     'value' => $category->id,
                     'label' => $category->name,
                     'slug' => $category->slug,
@@ -185,9 +183,9 @@ class PostController extends Controller
 
         return Inertia::render('Posts/Edit', [
             'post' => $post->only(['title', 'slug', 'content', 'excerpt', 'type']) + [
-                    'tags' => $post->tags->pluck('name')->toArray(),
-                ],
-            'postTypes' => collect(PostType::cases())->map(fn($type) => [
+                'tags' => $post->tags->pluck('name')->toArray(),
+            ],
+            'postTypes' => collect(PostType::cases())->map(fn ($type) => [
                 'value' => $type->value,
                 'label' => ucfirst($type->value),
             ])->sortBy('label')->values(),
@@ -210,7 +208,7 @@ class PostController extends Controller
 
         // Handle tags - sync existing tags with new ones
         $tagNames = $data['tags'] ?? [];
-        if (!empty($tagNames)) {
+        if (! empty($tagNames)) {
             $tagIds = $action->handle($tagNames);
             $post->tags()->sync($tagIds); // sync() replaces all current tags
         } else {
@@ -261,7 +259,7 @@ class PostController extends Controller
         // Check if the user already liked this post
         $existingLike = $post->likes()->where('user_id', $user->id)->first();
 
-        if (!$existingLike) {
+        if (! $existingLike) {
             $like = new Like;
             $like->user_id = $user->id;
             $post->likes()->save($like);
