@@ -19,18 +19,18 @@ const auth = page.props.auth as { user?: any };
 const siteData = page.props.siteData as { categories: any[] };
 
 const isSidebarItemActive = (item: any) => {
-    // First, check for exact component matches (higher precedence)
-    if (page.component === item.component) {
-        return true;
+    // Use route pattern matching for flexible, maintainable logic
+    if (item.routePattern) {
+        return item.routePattern.some((routeName: string) => route().current(routeName));
     }
 
-    // Special handling for Posts - should be active on Posts/Index and Posts/Show only
-    // NOT on Posts/Create (which should match "Create Post" instead)
-    if (item.routeName === 'posts.index') {
-        return page.component === 'Posts/Index' || page.component === 'Posts/Show';
+    // Single route name matching
+    if (item.routeName) {
+        return route().current(item.routeName);
     }
 
-    return false;
+    // Fallback to URL matching for non-route items
+    return page.url === item.href || page.url.startsWith(item.href + '/');
 };
 
 // Determine if sidebar should be shown
@@ -70,25 +70,24 @@ const isCategoryActive = (categorySlug: string) => {
     return false;
 };
 
-// Navigation items with consistent route handling
+// Navigation items with route pattern matching
 const mainNavItems = [
-    { href: '/', icon: Home, label: 'Home', routeName: 'home', component: 'Welcome' },
-    { href: route('posts.index'), icon: FileText, label: 'Posts', routeName: 'posts.index', component: 'Posts/Index' },
-    { href: route('tags.index'), icon: Tag, label: 'Tags', routeName: 'tags.index', component: 'Tags/Index' },
+    { href: '/', icon: Home, label: 'Home', routeName: 'home' },
+    { href: route('posts.index'), icon: FileText, label: 'Posts', routePattern: ['posts.index', 'posts.show'] },
+    { href: route('tags.index'), icon: Tag, label: 'Tags', routePattern: ['tags.index', 'tags.show'] },
     {
         href: '/vulnerabilities',
         icon: ShieldAlert,
         label: 'Vulnerability Database',
-        routeName: 'vulnerability.index',
-        component: 'Vulnerabilities/Index',
+        routePattern: ['vulnerabilities.index', 'vulnerabilities.show'],
     },
 ];
 
 const myStuffItems = [
-    { href: '/dashboard', icon: User, label: 'Dashboard', routeName: 'dashboard', component: 'Dashboard' },
-    { href: '/feed', icon: Rss, label: 'Feed', routeName: 'feed', component: 'Feed' },
-    { href: '/posts/create', icon: PlusCircle, label: 'Create Post', routeName: 'posts.create', component: 'Posts/Create' },
-    { href: '/posts/me', icon: FileText, label: 'My Posts', routeName: 'posts.me', component: 'Posts/MyPosts' },
+    { href: '/dashboard', icon: User, label: 'Dashboard', routeName: 'dashboard' },
+    { href: '/feed', icon: Rss, label: 'Feed', routeName: 'feed' },
+    { href: '/posts/create', icon: PlusCircle, label: 'Create Post', routeName: 'posts.create' },
+    { href: '/posts/me', icon: FileText, label: 'My Posts', routeName: 'posts.me' },
     // TODO: Route for user submitted vulns
 ];
 
