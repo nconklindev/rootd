@@ -62,37 +62,35 @@ const performSearch = () => {
 // Watch for filter changes
 watch([searchQuery, selectedSeverity, selectedStatus, selectedProduct], performSearch);
 
-const getSeverityBadgeVariant = (severity: string) => {
+const getSeverityColor = (severity: string) => {
     switch (severity) {
         case 'critical':
-            return 'destructive';
+            return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
         case 'high':
-            return 'destructive';
+            return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
         case 'medium':
-            return 'secondary';
+            return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
         case 'low':
-            return 'outline';
+            return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
         case 'info':
-            return 'secondary';
+            return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
         default:
-            return 'secondary';
+            return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
     }
 };
 
-const getStatusBadgeVariant = (status: string) => {
+const getStatusColor = (status: string) => {
     switch (status) {
-        case 'open':
-            return 'destructive';
-        case 'in_progress':
-            return 'secondary';
         case 'resolved':
-            return 'default';
+            return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        case 'in_progress':
+            return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+        case 'open':
+            return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
         case 'wont_fix':
-            return 'outline';
         case 'duplicate':
-            return 'outline';
         default:
-            return 'secondary';
+            return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
     }
 };
 
@@ -269,11 +267,11 @@ const formatDate = (dateString: string) => {
                         <!-- Right side badges -->
                         <div class="ml-4 flex flex-col items-end gap-2">
                             <div class="flex gap-2">
-                                <Badge :variant="getSeverityBadgeVariant(vulnerability.severity)">
-                                    {{ vulnerability.severity.toUpperCase() }}
+                                <Badge :class="getSeverityColor(vulnerability.severity)" class="capitalize">
+                                    {{ vulnerability.severity }}
                                 </Badge>
-                                <Badge :variant="getStatusBadgeVariant(vulnerability.status)">
-                                    {{ vulnerability.status.replace('_', ' ').toUpperCase() }}
+                                <Badge :class="getStatusColor(vulnerability.status)" class="capitalize">
+                                    {{ vulnerability.status.replace('_', ' ') }}
                                 </Badge>
                             </div>
                             <div class="text-xs text-muted-foreground">
