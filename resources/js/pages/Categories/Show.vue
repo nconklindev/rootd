@@ -14,7 +14,6 @@ import SiteLayout from '@/layouts/SiteLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next';
 
-const page = usePage();
 defineProps<{ posts: any; category: any }>();
 defineOptions({ layout: SiteLayout });
 </script>
