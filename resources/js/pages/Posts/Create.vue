@@ -25,7 +25,7 @@ interface Category {
     slug: string;
     color: string;
 }
-const page = usePage();
+
 // Define props
 const props = defineProps<{
     postTypes: PostType[];
