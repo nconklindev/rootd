@@ -42,14 +42,14 @@ Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->
 // Wiki
 
 // Vulnerability Database
-Route::middleware(['auth', 'permission:view_vulnerabilities'])->group(function () {
-    Route::get('/vulnerabilities', [VulnerabilityController::class, 'index'])->name('vulnerability.index');
-    Route::get('/vulnerabilities/{vulnerability}', [VulnerabilityController::class, 'show'])->name('vulnerability.show');
+Route::middleware(['auth', 'permission:create_vulnerabilities'])->group(function () {
+    Route::get('/vulnerabilities/create', [VulnerabilityController::class, 'create'])->name('vulnerabilities.create');
+    Route::post('/vulnerabilities', [VulnerabilityController::class, 'store'])->name('vulnerabilities.store');
 });
 
-Route::middleware(['auth', 'permission:create_vulnerabilities'])->group(function () {
-    Route::get('/vulnerabilities/create', [VulnerabilityController::class, 'create'])->name('vulnerability.create');
-    Route::post('/vulnerabilities', [VulnerabilityController::class, 'store'])->name('vulnerability.store');
+Route::middleware(['auth', 'permission:view_vulnerabilities'])->group(function () {
+    Route::get('/vulnerabilities', [VulnerabilityController::class, 'index'])->name('vulnerabilities.index');
+    Route::get('/vulnerabilities/{vulnerability}', [VulnerabilityController::class, 'show'])->name('vulnerabilities.show');
 });
 
 // Feed

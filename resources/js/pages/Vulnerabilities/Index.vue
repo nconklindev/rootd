@@ -44,7 +44,7 @@ const performSearch = () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
         router.get(
-            route('vulnerability.index'),
+            route('vulnerabilities.index'),
             {
                 search: searchQuery.value || undefined,
                 severity: selectedSeverity.value === 'all' ? undefined : selectedSeverity.value || undefined,
@@ -121,7 +121,7 @@ const formatDate = (dateString: string) => {
                     </div>
                 </div>
                 <Button v-if="can?.create" as-child size="lg">
-                    <Link :href="route('vulnerability.create')">
+                    <Link :href="route('vulnerabilities.create')">
                         <Plus class="mr-2 h-4 w-4" />
                         Report Vulnerability
                     </Link>
@@ -234,7 +234,7 @@ const formatDate = (dateString: string) => {
                             <!-- Title and CVE -->
                             <div class="mb-2 flex items-start gap-3">
                                 <Link
-                                    :href="route('vulnerability.show', vulnerability.id)"
+                                    :href="route('vulnerabilities.show', vulnerability.id)"
                                     class="text-lg font-semibold transition-colors hover:text-primary"
                                 >
                                     {{ vulnerability.title }}
@@ -299,7 +299,7 @@ const formatDate = (dateString: string) => {
                         }}
                     </p>
                     <Button v-if="can?.create && !filters.search && !filters.severity && !filters.status" as-child>
-                        <Link :href="route('vulnerability.create')">
+                        <Link :href="route('vulnerabilities.create')">
                             <Plus class="mr-2 h-4 w-4" />
                             Report First Vulnerability
                         </Link>
@@ -319,7 +319,7 @@ const formatDate = (dateString: string) => {
                 @update:page="
                     (p) =>
                         router.get(
-                            route('vulnerability.index'),
+                            route('vulnerabilities.index'),
                             {
                                 page: p,
                                 search: searchQuery || undefined,
