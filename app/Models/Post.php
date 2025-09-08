@@ -30,6 +30,7 @@ class Post extends Model
         'excerpt',
         'type',
         'views_count',
+        'category_id',
     ];
 
     protected $appends = ['created_at_human'];
@@ -62,6 +63,12 @@ class Post extends Model
                 $post->excerpt = $post->generateExcerpt($post->content);
             }
         });
+
+        static::deleting(function (Post $post): void {
+            // Detach all tags from this post before deletion
+            // This removes entries from the post_tag pivot table but preserves the tags themselves
+            $post->tags()->detach();
+        });
     }
 
     /**
@@ -74,10 +81,10 @@ class Post extends Model
         $i = 2;
 
         while (static::query()
-            ->when($ignoreId !== null, fn($q) => $q->where('id', '!=', $ignoreId))
+            ->when($ignoreId !== null, fn ($q) => $q->where('id', '!=', $ignoreId))
             ->where('slug', $slug)
             ->exists()) {
-            $slug = $base . '-' . $i;
+            $slug = $base.'-'.$i;
             $i++;
         }
 
@@ -105,6 +112,11 @@ class Post extends Model
         return Str::limit($excerpt, 252, '...');
     }
 
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'post_tag', 'post_id', 'tag_id');
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
@@ -120,11 +132,6 @@ class Post extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function tags(): BelongsToMany
-    {
-        return $this->belongsToMany(Tag::class, 'post_tag', 'post_id', 'tag_id');
     }
 
     public function category(): BelongsTo
