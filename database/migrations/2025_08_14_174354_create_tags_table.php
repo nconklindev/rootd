@@ -14,8 +14,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug');
             $table->string('color');
-            $table->timestamp('last_used_at')->default(Carbon::now());
-            $table->unsignedBigInteger('usage_count')->default(0);
+            $table->date('last_used_at')->default(Carbon::now());
             $table->timestamps();
         });
     }
