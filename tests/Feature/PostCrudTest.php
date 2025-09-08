@@ -76,3 +76,30 @@ test('only owner can update post', function () {
         'content' => 'B',
     ]);
 });
+
+test('only owner can delete post', function () {
+    $owner = User::factory()->create();
+    $other = User::factory()->create();
+
+    $post = $owner->posts()->create([
+        'title' => 'My First Post',
+        'slug' => 'my-first-post',
+        'content' => 'Post content',
+        'excerpt' => 'Excerpt',
+        'type' => 'text',
+    ]);
+
+    // Other user cannot delete
+    $this->actingAs($other)
+        ->delete(route('posts.destroy', $post))
+        ->assertForbidden();
+
+    // Owner can delete
+    $this->actingAs($owner)
+        ->delete(route('posts.destroy', $post))
+        ->assertRedirect(route('posts.index'));
+
+    $this->assertDatabaseMissing('posts', [
+        'id' => $post->id,
+    ]);
+});
