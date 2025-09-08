@@ -119,7 +119,8 @@ const getActivityColor = (type: string) => {
 };
 
 // Flash message functionality
-const page = usePage();
+// FIXME: Linter complaining about this
+// const page = usePage();
 </script>
 
 <template>
