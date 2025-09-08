@@ -19,7 +19,6 @@ class Tag extends Model
         'name',
         'slug',
         'color',
-        'usage_count',
         'last_used_at',
     ];
 
@@ -35,7 +34,6 @@ class Tag extends Model
         if ($similarTags->isEmpty()) {
             $containmentTags = self::where('name', 'ILIKE', '%'.$input.'%')
                 ->orWhere(DB::raw('LOWER(name)'), 'ILIKE', '%'.strtolower($input).'%')
-                ->orderBy('usage_count', 'desc')
                 ->limit($limit)
                 ->get();
 
@@ -73,7 +71,7 @@ class Tag extends Model
     public static function normalizeTagName(string $name): string
     {
         // Convert to lowercase
-        $normalized = strtolower($name);
+        $normalized = trim(strtolower($name));
 
         // Remove common suffixes/prefixes
         $patterns = [
@@ -183,7 +181,6 @@ class Tag extends Model
                 ->update(['tag_id' => $targetTag->id]);
 
             // Update target tag usage count
-            $targetTag->increment('usage_count', $this->usage_count ?? 0);
             $targetTag->update(['last_used_at' => now()]);
 
             // Delete this tag
