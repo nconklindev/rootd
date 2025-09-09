@@ -12,16 +12,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Post extends Model
 {
     use HasFactory;
+    use LogsActivity;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    protected static array $recordEvents = ['created', 'updated'];
+
     protected $fillable = [
         'title',
         'slug',
@@ -34,6 +34,7 @@ class Post extends Model
     ];
 
     protected $appends = ['created_at_human'];
+    protected $guarded = ['id'];
 
     /**
      * Automatically generate a unique slug from the title when creating/updating.
@@ -59,7 +60,7 @@ class Post extends Model
             }
 
             // Only auto-generate excerpt if user didn't provide one and content changed
-            if ($post->isDirty('content') && $post->content !== null && empty($post->excerpt)) {
+            if ($post->isDirty('content') && $post->content !== null) {
                 $post->excerpt = $post->generateExcerpt($post->content);
             }
         });
@@ -81,10 +82,10 @@ class Post extends Model
         $i = 2;
 
         while (static::query()
-            ->when($ignoreId !== null, fn ($q) => $q->where('id', '!=', $ignoreId))
+            ->when($ignoreId !== null, fn($q) => $q->where('id', '!=', $ignoreId))
             ->where('slug', $slug)
             ->exists()) {
-            $slug = $base.'-'.$i;
+            $slug = $base . '-' . $i;
             $i++;
         }
 
@@ -154,6 +155,16 @@ class Post extends Model
         return $this->morphMany(Like::class, 'likeable');
     }
 
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['title', 'slug'])
+            ->logOnlyDirty()
+            ->dontLogIfAttributesChangedOnly(['views_count'])
+            ->useLogName('posts')
+            ->dontSubmitEmptyLogs();
+    }
+
     /**
      * Scope a query to order posts by view count (most viewed first)
      */
@@ -161,15 +172,6 @@ class Post extends Model
     protected function mostViewed(Builder $query): void
     {
         $query->orderBy('views_count', 'desc');
-    }
-
-    /**
-     * Scope a query to limit results to top N posts
-     */
-    #[Scope]
-    protected function topViewed(Builder $query, int $limit = 10): void
-    {
-        $query->take($limit);
     }
 
     protected function casts(): array
