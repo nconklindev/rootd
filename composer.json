@@ -28,7 +28,8 @@
         "nunomaduro/collision": "^8.6",
         "pestphp/pest": "^4.0",
         "pestphp/pest-plugin-browser": "^4.0",
-        "pestphp/pest-plugin-drift": "^4.0"
+        "pestphp/pest-plugin-drift": "^4.0",
+        "phpstan/phpstan": "^2.1"
     },
     "autoload": {
         "psr-4": {
