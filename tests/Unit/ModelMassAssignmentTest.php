@@ -79,7 +79,7 @@ test('comment mass assignment cannot set user_id or post_id; relationships must'
 
     // Prove mass assigning IDs is not allowed
     // This should throw an exception causing the test to pass since we are expecting it
-    expect(fn() => Comment::create([
+    expect(fn () => Comment::create([
         'content' => 'Nice post',
         'post_id' => $post->id,
         'user_id' => $user->id,
@@ -121,7 +121,7 @@ test('attachment mass assignment disallows does not allow assigning user_id', fu
     $user = User::factory()->create();
     $post = Post::factory()->create();
 
-    expect(fn() => Attachment::create([
+    expect(fn () => Attachment::create([
         'type' => 'doc',
         'file_size' => 1024,
         'mime_type' => 'application/pdf',
@@ -134,10 +134,9 @@ test('attachment mass assignment disallows does not allow assigning user_id', fu
 test('like is not mass assignable', function () {
     Model::preventSilentlyDiscardingAttributes();
 
-    expect(fn() => Like::create([
+    expect(fn () => Like::create([
         'user_id' => 1,
         'likeable_type' => Post::class,
         'likeable_id' => 1,
     ]))->toThrow(MassAssignmentException::class);
 });
-

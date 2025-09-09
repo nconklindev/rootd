@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Attachment;
 use App\Models\Comment;
 use App\Models\Like;
 use App\Models\Post;
@@ -44,7 +43,7 @@ class PostSeeder extends Seeder
                 ->for($user)
                 ->create();
 
-            $posts->each(function (Post $post) use ($user, $users, $tags): void {
+            $posts->each(function (Post $post) use ($users, $tags): void {
                 // Top-level comments
                 $topLevelComments = Comment::factory()
                     ->count(fake()->numberBetween(0, 4))
@@ -56,7 +55,7 @@ class PostSeeder extends Seeder
                 $topLevelComments->each(function (Comment $parent) use ($users): void {
                     Comment::factory()
                         ->count(fake()->numberBetween(0, 3))
-                        ->state(fn() => [
+                        ->state(fn () => [
                             'post_id' => $parent->post_id,
                             'parent_id' => $parent->id,
                             'user_id' => $users->random()->id,

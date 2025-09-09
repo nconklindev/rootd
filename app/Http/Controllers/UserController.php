@@ -22,8 +22,8 @@ class UserController extends Controller
             'total_posts' => $user->posts()->count(),
             'total_views' => $user->posts()->sum('views_count'),
             'total_likes_received' => Like::whereIn('likeable_id', $user->posts()->pluck('id'))
-                    ->where('likeable_type', Post::class)
-                    ->count() +
+                ->where('likeable_type', Post::class)
+                ->count() +
                 Like::whereIn('likeable_id', $user->comments()->pluck('id'))
                     ->where('likeable_type', Comment::class)
                     ->count(),
@@ -80,6 +80,7 @@ class UserController extends Controller
             ->get()
             ->map(function ($category) {
                 $category->total_views_formatted = Number::abbreviate($category->total_views ?? 0);
+
                 return $category;
             });
 
@@ -130,6 +131,7 @@ class UserController extends Controller
     {
         auth()->user()->following()->toggle($user->id);
         session()->flash('success', 'User followed successfully.');
+
         return back();
     }
 }

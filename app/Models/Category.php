@@ -2,14 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class Category extends Model
 {
-
     /**
      * The attributes that are mass assignable.
      *
@@ -50,10 +48,10 @@ class Category extends Model
         $i = 2;
 
         while (static::query()
-            ->when($ignoreId !== null, fn($q) => $q->where('id', '!=', $ignoreId))
+            ->when($ignoreId !== null, fn ($q) => $q->where('id', '!=', $ignoreId))
             ->where('slug', $slug)
             ->exists()) {
-            $slug = $base . '-' . $i;
+            $slug = $base.'-'.$i;
             $i++;
         }
 
