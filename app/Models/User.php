@@ -71,6 +71,11 @@ class User extends Authenticatable
         return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id');
     }
 
+    public function logAnalyses(): HasMany
+    {
+        return $this->hasMany(LogAnalysis::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *
