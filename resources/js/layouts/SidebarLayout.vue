@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Badge } from '@/components/ui/badge';
 import { Link, usePage } from '@inertiajs/vue3';
-import { FileText, HelpCircle, Home, PlusCircle, Rss, Settings, ShieldAlert, Tag, TrendingUp, User } from 'lucide-vue-next';
+import { FileText, Hammer, HelpCircle, Home, PlusCircle, Rss, Settings, ShieldAlert, Tag, TrendingUp, User, FileSearch, Shield } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const props = defineProps({
@@ -91,6 +91,16 @@ const myStuffItems = [
     // TODO: Route for user submitted vulns
 ];
 
+const securityToolsItems = [
+    { 
+        href: route('tools.logs.index'), 
+        icon: FileSearch, 
+        label: 'Log Analysis', 
+        routePattern: ['tools.logs.*']
+    },
+    // Future tools can be added here
+];
+
 // Helper function to check if navigation item is active
 
 const quickActionItems = auth.user
@@ -157,6 +167,28 @@ const toggleMobileSidebar = () => {
                         ]"
                         :href="item.href"
                         prefetch
+                    >
+                        <component :is="item.icon" class="h-4 w-4" />
+                        <span>{{ item.label }}</span>
+                    </Link>
+                </div>
+            </div>
+
+            <!-- Security Tools Section -->
+            <div v-if="auth.user" class="mb-6">
+                <h3 class="mb-2 px-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Security Tools</h3>
+                <div class="space-y-1">
+                    <Link
+                        v-for="item in securityToolsItems"
+                        :key="item.href"
+                        :class="[
+                            'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                            isSidebarItemActive(item)
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                        ]"
+                        :href="item.href"
+                        prefetch="click"
                     >
                         <component :is="item.icon" class="h-4 w-4" />
                         <span>{{ item.label }}</span>
