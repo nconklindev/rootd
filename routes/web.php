@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\Tools\LogAnalysisController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserPostController;
 use App\Http\Controllers\VulnerabilityController;
@@ -41,6 +42,18 @@ Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->
 
 // Wiki
 
+// Tools
+Route::middleware(['auth'])->prefix('tools')->name('tools.')->group(function () {
+    Route::prefix('logs')->name('logs.')->group(function () {
+        Route::get('/', [LogAnalysisController::class, 'index'])->name('index');
+        Route::get('/parser', [LogAnalysisController::class, 'parser'])->name('parser');
+        Route::post('/upload', [LogAnalysisController::class, 'upload'])->name('upload');
+        Route::get('/{analysis}', [LogAnalysisController::class, 'show'])->name('show');
+        Route::get('/{analysis}/progress', [LogAnalysisController::class, 'getProgress'])->name('progress');
+        Route::delete('/{analysis}', [LogAnalysisController::class, 'destroy'])->name('destroy');
+    });
+});
+
 // Vulnerability Database
 Route::middleware(['auth', 'permission:create_vulnerabilities'])->group(function () {
     Route::get('/vulnerabilities/create', [VulnerabilityController::class, 'create'])->name('vulnerabilities.create');
@@ -68,5 +81,5 @@ Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->midd
 Route::post('/comments/{comment}/like', [CommentController::class, 'like'])->middleware(['auth'])->name('comments.like');
 Route::delete('/comments/{comment}/like', [CommentController::class, 'unlike'])->middleware(['auth'])->name('comments.unlike');
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';
