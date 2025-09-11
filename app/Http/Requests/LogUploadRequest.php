@@ -27,7 +27,8 @@ class LogUploadRequest extends FormRequest
                 'required',
                 'file',
                 'max:204800', // 200MB max per file
-                'mimetypes:text/plain,application/json,text/csv,application/octet-stream'
+                'extensions:log,txt,json,csv,jsonl,evt,evtx',
+                'mimetypes:text/plain,text/html,application/json,text/csv,application/octet-stream'
             ]
         ];
     }
