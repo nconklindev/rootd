@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import SiteLayout from '@/layouts/SiteLayout.vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { Activity, BarChart3, Clock, Eye, Heart, MessageSquare, PenTool, TrendingUp, User } from 'lucide-vue-next';
 
 interface UserStats {
