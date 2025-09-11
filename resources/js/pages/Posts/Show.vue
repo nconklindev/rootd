@@ -2,7 +2,7 @@
 import CommentItem from '@/components/CommentItem.vue';
 import { Button } from '@/components/ui/button';
 import SiteLayout from '@/layouts/SiteLayout.vue';
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/tokyo-night-dark.css';
 import { ArrowLeft, Download, Eye, FileText, Heart, MessageSquareMoreIcon } from 'lucide-vue-next';
@@ -86,6 +86,9 @@ const deletePost = (): void => {
         router.delete(route('posts.destroy', props.post.id));
     }
 };
+
+const page = usePage();
+console.log(page.props.auth.user.roles);
 </script>
 
 <template>
@@ -107,9 +110,9 @@ const deletePost = (): void => {
                 <Button v-if="$page.props.auth?.user && $page.props.auth.user.id === post.author?.id" as-child size="sm" variant="secondary">
                     <Link :href="route('posts.edit', post.slug)">Edit</Link>
                 </Button>
-                <Button 
-                    v-if="$page.props.auth?.user && $page.props.auth.user.id === post.author?.id" 
-                    size="sm" 
+                <Button
+                    v-if="($page.props.auth?.user && $page.props.auth.user.id === post.author?.id) || $page.props.auth?.user?.roles.includes('admin')"
+                    size="sm"
                     variant="destructive"
                     @click="deletePost"
                 >
@@ -131,9 +134,11 @@ const deletePost = (): void => {
                     <div class="flex items-center space-x-2">
                         <span
                             >By
-                            <Link :href="route('users.show', post.author?.username)" class="font-medium text-zinc-200 hover:text-primary">{{
-                                post.author?.name ?? 'Unknown'
-                            }}</Link></span
+                            <Link
+                                :href="route('users.show', post.author?.username)"
+                                class="font-medium text-zinc-800 hover:text-accent dark:text-zinc-100 dark:hover:text-primary"
+                                >{{ post.author?.name ?? 'Unknown' }}</Link
+                            ></span
                         >
                     </div>
                 </div>
