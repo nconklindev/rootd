@@ -44,7 +44,7 @@ const performSearch = () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
         router.get(
-            route('vulnerability.index'),
+            route('vulnerabilities.index'),
             {
                 search: searchQuery.value || undefined,
                 severity: selectedSeverity.value === 'all' ? undefined : selectedSeverity.value || undefined,
@@ -62,37 +62,35 @@ const performSearch = () => {
 // Watch for filter changes
 watch([searchQuery, selectedSeverity, selectedStatus, selectedProduct], performSearch);
 
-const getSeverityBadgeVariant = (severity: string) => {
+const getSeverityColor = (severity: string) => {
     switch (severity) {
         case 'critical':
-            return 'destructive';
+            return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
         case 'high':
-            return 'destructive';
+            return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
         case 'medium':
-            return 'secondary';
+            return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
         case 'low':
-            return 'outline';
+            return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
         case 'info':
-            return 'secondary';
+            return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
         default:
-            return 'secondary';
+            return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
     }
 };
 
-const getStatusBadgeVariant = (status: string) => {
+const getStatusColor = (status: string) => {
     switch (status) {
-        case 'open':
-            return 'destructive';
-        case 'in_progress':
-            return 'secondary';
         case 'resolved':
-            return 'default';
+            return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        case 'in_progress':
+            return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+        case 'open':
+            return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
         case 'wont_fix':
-            return 'outline';
         case 'duplicate':
-            return 'outline';
         default:
-            return 'secondary';
+            return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
     }
 };
 
@@ -121,7 +119,7 @@ const formatDate = (dateString: string) => {
                     </div>
                 </div>
                 <Button v-if="can?.create" as-child size="lg">
-                    <Link :href="route('vulnerability.create')">
+                    <Link :href="route('vulnerabilities.create')">
                         <Plus class="mr-2 h-4 w-4" />
                         Report Vulnerability
                     </Link>
@@ -234,7 +232,7 @@ const formatDate = (dateString: string) => {
                             <!-- Title and CVE -->
                             <div class="mb-2 flex items-start gap-3">
                                 <Link
-                                    :href="route('vulnerability.show', vulnerability.id)"
+                                    :href="route('vulnerabilities.show', vulnerability.id)"
                                     class="text-lg font-semibold transition-colors hover:text-primary"
                                 >
                                     {{ vulnerability.title }}
@@ -269,11 +267,11 @@ const formatDate = (dateString: string) => {
                         <!-- Right side badges -->
                         <div class="ml-4 flex flex-col items-end gap-2">
                             <div class="flex gap-2">
-                                <Badge :variant="getSeverityBadgeVariant(vulnerability.severity)">
-                                    {{ vulnerability.severity.toUpperCase() }}
+                                <Badge :class="getSeverityColor(vulnerability.severity)" class="capitalize">
+                                    {{ vulnerability.severity }}
                                 </Badge>
-                                <Badge :variant="getStatusBadgeVariant(vulnerability.status)">
-                                    {{ vulnerability.status.replace('_', ' ').toUpperCase() }}
+                                <Badge :class="getStatusColor(vulnerability.status)" class="capitalize">
+                                    {{ vulnerability.status.replace('_', ' ') }}
                                 </Badge>
                             </div>
                             <div class="text-xs text-muted-foreground">
@@ -299,7 +297,7 @@ const formatDate = (dateString: string) => {
                         }}
                     </p>
                     <Button v-if="can?.create && !filters.search && !filters.severity && !filters.status" as-child>
-                        <Link :href="route('vulnerability.create')">
+                        <Link :href="route('vulnerabilities.create')">
                             <Plus class="mr-2 h-4 w-4" />
                             Report First Vulnerability
                         </Link>
@@ -319,7 +317,7 @@ const formatDate = (dateString: string) => {
                 @update:page="
                     (p) =>
                         router.get(
-                            route('vulnerability.index'),
+                            route('vulnerabilities.index'),
                             {
                                 page: p,
                                 search: searchQuery || undefined,

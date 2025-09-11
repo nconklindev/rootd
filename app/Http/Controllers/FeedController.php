@@ -25,7 +25,7 @@ class FeedController extends Controller
                     'user' => $post->user,
                     'timestamp' => $post->created_at,
                     'human_time' => $post->created_at->diffForHumans(),
-                    'data' => $post->only(['id', 'title', 'slug', 'excerpt'])
+                    'data' => $post->only(['id', 'title', 'slug', 'excerpt']),
                 ];
             });
 
@@ -43,8 +43,8 @@ class FeedController extends Controller
                     'data' => [
                         'id' => $comment->id,
                         'body' => $comment->content,
-                        'post' => $comment->post->only(['id', 'title', 'slug'])
-                    ]
+                        'post' => $comment->post->only(['id', 'title', 'slug']),
+                    ],
                 ];
             });
 
@@ -62,8 +62,8 @@ class FeedController extends Controller
                     'human_time' => $like->created_at->diffForHumans(),
                     'data' => [
                         'id' => $like->id,
-                        'post' => $like->likeable->only(['id', 'title', 'slug'])
-                    ]
+                        'post' => $like->likeable->only(['id', 'title', 'slug']),
+                    ],
                 ];
             });
 

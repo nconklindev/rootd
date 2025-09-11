@@ -80,6 +80,12 @@ const toggleLike = (): void => {
 const isImage = (mimeType: string): boolean => {
     return mimeType.startsWith('image/');
 };
+
+const deletePost = (): void => {
+    if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+        router.delete(route('posts.destroy', props.post.id));
+    }
+};
 </script>
 
 <template>
@@ -100,6 +106,14 @@ const isImage = (mimeType: string): boolean => {
 
                 <Button v-if="$page.props.auth?.user && $page.props.auth.user.id === post.author?.id" as-child size="sm" variant="secondary">
                     <Link :href="route('posts.edit', post.slug)">Edit</Link>
+                </Button>
+                <Button 
+                    v-if="$page.props.auth?.user && $page.props.auth.user.id === post.author?.id" 
+                    size="sm" 
+                    variant="destructive"
+                    @click="deletePost"
+                >
+                    Delete
                 </Button>
             </div>
         </div>
@@ -254,42 +268,44 @@ const isImage = (mimeType: string): boolean => {
 /* Post Content Prose Styling - matches TipTap editor */
 :deep(.prose) {
     /* Reduce list spacing */
-    ul, ol {
+    ul,
+    ol {
         margin-top: 0.75rem;
         margin-bottom: 0.75rem;
     }
-    
+
     li {
         margin-top: 0;
         margin-bottom: 0.25rem;
     }
-    
+
     li:last-child {
         margin-bottom: 0;
     }
-    
+
     /* Remove paragraph margins inside list items */
     li p {
         margin-top: 0;
         margin-bottom: 0;
     }
-    
+
     /* Nested lists */
-    li > ul, li > ol {
+    li > ul,
+    li > ol {
         margin-top: 0.25rem;
         margin-bottom: 0.25rem;
     }
-    
+
     /* Paragraph spacing */
     p {
         margin-top: 0;
         margin-bottom: 0.75rem;
     }
-    
+
     p:last-child {
         margin-bottom: 0;
     }
-    
+
     /* Code blocks */
     pre {
         margin-top: 1rem;
@@ -299,7 +315,7 @@ const isImage = (mimeType: string): boolean => {
         background-color: #1f2937;
         overflow-x: auto;
     }
-    
+
     /* Inline code */
     code {
         padding: 0.125rem 0.375rem;
@@ -307,7 +323,7 @@ const isImage = (mimeType: string): boolean => {
         font-size: 0.875em;
         background-color: #374151;
     }
-    
+
     /* Blockquotes */
     blockquote {
         margin-top: 1rem;
@@ -318,32 +334,41 @@ const isImage = (mimeType: string): boolean => {
         font-style: italic;
         color: #9ca3af;
     }
-    
+
     /* First element margin */
     > :first-child {
         margin-top: 0;
     }
-    
+
     /* Last element margin */
     > :last-child {
         margin-bottom: 0;
     }
-    
+
     /* Hard breaks for proper line spacing */
     br {
         display: block;
         margin: 0.25rem 0;
-        content: "";
+        content: '';
     }
-    
+
     /* Remove excessive spacing from prose defaults */
-    h1, h2, h3, h4, h5, h6 {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
         margin-top: 1.5rem;
         margin-bottom: 0.75rem;
     }
-    
-    h1:first-child, h2:first-child, h3:first-child, 
-    h4:first-child, h5:first-child, h6:first-child {
+
+    h1:first-child,
+    h2:first-child,
+    h3:first-child,
+    h4:first-child,
+    h5:first-child,
+    h6:first-child {
         margin-top: 0;
     }
 }

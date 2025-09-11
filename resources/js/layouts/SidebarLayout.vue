@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Badge } from '@/components/ui/badge';
 import { Link, usePage } from '@inertiajs/vue3';
-import { FileText, HelpCircle, Home, PlusCircle, Rss, Settings, ShieldAlert, Tag, TrendingUp, User } from 'lucide-vue-next';
+import { FileText, Hammer, HelpCircle, Home, PlusCircle, Rss, Settings, ShieldAlert, Tag, TrendingUp, User, FileSearch, Shield } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const props = defineProps({
@@ -19,18 +19,18 @@ const auth = page.props.auth as { user?: any };
 const siteData = page.props.siteData as { categories: any[] };
 
 const isSidebarItemActive = (item: any) => {
-    // First, check for exact component matches (higher precedence)
-    if (page.component === item.component) {
-        return true;
+    // Use route pattern matching for flexible, maintainable logic
+    if (item.routePattern) {
+        return item.routePattern.some((routeName: string) => route().current(routeName));
     }
 
-    // Special handling for Posts - should be active on Posts/Index and Posts/Show only
-    // NOT on Posts/Create (which should match "Create Post" instead)
-    if (item.routeName === 'posts.index') {
-        return page.component === 'Posts/Index' || page.component === 'Posts/Show';
+    // Single route name matching
+    if (item.routeName) {
+        return route().current(item.routeName);
     }
 
-    return false;
+    // Fallback to URL matching for non-route items
+    return page.url === item.href || page.url.startsWith(item.href + '/');
 };
 
 // Determine if sidebar should be shown
@@ -70,26 +70,35 @@ const isCategoryActive = (categorySlug: string) => {
     return false;
 };
 
-// Navigation items with consistent route handling
+// Navigation items with route pattern matching
 const mainNavItems = [
-    { href: '/', icon: Home, label: 'Home', routeName: 'home', component: 'Welcome' },
-    { href: route('posts.index'), icon: FileText, label: 'Posts', routeName: 'posts.index', component: 'Posts/Index' },
-    { href: route('tags.index'), icon: Tag, label: 'Tags', routeName: 'tags.index', component: 'Tags/Index' },
+    { href: '/', icon: Home, label: 'Home', routeName: 'home' },
+    { href: route('posts.index'), icon: FileText, label: 'Posts', routePattern: ['posts.index', 'posts.show'] },
+    { href: route('tags.index'), icon: Tag, label: 'Tags', routePattern: ['tags.index', 'tags.show'] },
     {
         href: '/vulnerabilities',
         icon: ShieldAlert,
         label: 'Vulnerability Database',
-        routeName: 'vulnerability.index',
-        component: 'Vulnerabilities/Index',
+        routePattern: ['vulnerabilities.index', 'vulnerabilities.show'],
     },
 ];
 
 const myStuffItems = [
-    { href: '/dashboard', icon: User, label: 'Dashboard', routeName: 'dashboard', component: 'Dashboard' },
-    { href: '/feed', icon: Rss, label: 'Feed', routeName: 'feed', component: 'Feed' },
-    { href: '/posts/create', icon: PlusCircle, label: 'Create Post', routeName: 'posts.create', component: 'Posts/Create' },
-    { href: '/posts/me', icon: FileText, label: 'My Posts', routeName: 'posts.me', component: 'Posts/MyPosts' },
+    { href: '/dashboard', icon: User, label: 'Dashboard', routeName: 'dashboard' },
+    { href: '/feed', icon: Rss, label: 'Feed', routeName: 'feed' },
+    { href: '/posts/create', icon: PlusCircle, label: 'Create Post', routeName: 'posts.create' },
+    { href: '/posts/me', icon: FileText, label: 'My Posts', routeName: 'posts.me' },
     // TODO: Route for user submitted vulns
+];
+
+const securityToolsItems = [
+    { 
+        href: route('tools.logs.index'), 
+        icon: FileSearch, 
+        label: 'Log Analysis', 
+        routePattern: ['tools.logs.*']
+    },
+    // Future tools can be added here
 ];
 
 // Helper function to check if navigation item is active
@@ -158,6 +167,28 @@ const toggleMobileSidebar = () => {
                         ]"
                         :href="item.href"
                         prefetch
+                    >
+                        <component :is="item.icon" class="h-4 w-4" />
+                        <span>{{ item.label }}</span>
+                    </Link>
+                </div>
+            </div>
+
+            <!-- Security Tools Section -->
+            <div v-if="auth.user" class="mb-6">
+                <h3 class="mb-2 px-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Security Tools</h3>
+                <div class="space-y-1">
+                    <Link
+                        v-for="item in securityToolsItems"
+                        :key="item.href"
+                        :class="[
+                            'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                            isSidebarItemActive(item)
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                        ]"
+                        :href="item.href"
+                        prefetch="click"
                     >
                         <component :is="item.icon" class="h-4 w-4" />
                         <span>{{ item.label }}</span>

@@ -74,7 +74,7 @@ test('post show includes like data', function () {
     $response = $this->actingAs($user)->get(route('posts.show', $post->slug));
 
     $response->assertStatus(200);
-    $response->assertInertia(fn($assert) => $assert
+    $response->assertInertia(fn ($assert) => $assert
         ->component('Posts/Show')
         ->where('post.is_liked', true)
         ->where('post.likes_count', 1)

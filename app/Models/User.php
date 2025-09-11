@@ -14,13 +14,8 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'username',
@@ -28,16 +23,18 @@ class User extends Authenticatable
         'password',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
+    protected $guarded = ['id'];
+
     protected $hidden = [
         'password',
         'email',
         'remember_token',
     ];
+
+    public function vulnerabilities(): HasMany
+    {
+        return $this->hasMany(Vulnerability::class, 'user_id');
+    }
 
     public function posts(): HasMany
     {
@@ -72,6 +69,11 @@ class User extends Authenticatable
     public function following(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id');
+    }
+
+    public function logAnalyses(): HasMany
+    {
+        return $this->hasMany(LogAnalysis::class);
     }
 
     /**

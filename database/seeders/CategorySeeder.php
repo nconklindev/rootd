@@ -51,18 +51,18 @@ class CategorySeeder extends Seeder
             [
                 'name' => 'Red Team Readout',
                 'description' => 'All things Red Team. Where our Red Team members can discuss things happening in their organization and others can come and read and discuss.',
-                'color' => '#F87171' // Vibrant Light Red
+                'color' => '#F87171', // Vibrant Light Red
             ],
             [
                 'name' => 'Blue Team Backyard',
                 'description' => 'All things Blue Team. Where our Blue Team members can discuss things happening in their organization and others can come and read and discuss.',
-                'color' => '#60A5FA' // Vibrant Light Blue
+                'color' => '#60A5FA', // Vibrant Light Blue
             ],
             [
                 'name' => 'Home Lab',
                 'description' => 'Created something cool at home on that dusty old PC you want to share with others? Tell us what you did!',
-                'color' => '#34D399' // Vibrant Mint Green
-            ]
+                'color' => '#34D399', // Vibrant Mint Green
+            ],
         ];
 
         foreach ($categories as $categoryData) {

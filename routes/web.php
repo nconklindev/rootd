@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\Tools\LogAnalysisController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserPostController;
 use App\Http\Controllers\VulnerabilityController;
@@ -28,7 +29,7 @@ Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->middleware(['
 Route::put('/posts/{post}', [PostController::class, 'update'])->middleware(['auth'])->name('posts.update');
 Route::post('/posts/{id}/like', [PostController::class, 'like'])->middleware(['auth'])->name('posts.like');
 Route::delete('/posts/{id}/like', [PostController::class, 'unlike'])->middleware(['auth'])->name('posts.unlike');
-Route::delete('/posts/{post}', [PostController::class, 'destroy'])->middleware(['auth'])->name('posts.destroy');
+Route::delete('/posts/{post:id}', [PostController::class, 'destroy'])->middleware(['auth'])->name('posts.destroy');
 
 // User Profile and Posts
 Route::get('/u/{user:username}', [UserController::class, 'show'])->middleware(['auth'])->name('users.show');
@@ -41,16 +42,32 @@ Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->
 
 // Wiki
 
-// Vulnerability Database
-Route::middleware(['auth', 'permission:view_vulnerabilities'])->group(function () {
-    Route::get('/vulnerabilities', [VulnerabilityController::class, 'index'])->name('vulnerability.index');
-    Route::get('/vulnerabilities/{vulnerability}', [VulnerabilityController::class, 'show'])->name('vulnerability.show');
+// Tools
+Route::middleware(['auth'])->prefix('tools')->name('tools.')->group(function () {
+    Route::prefix('logs')->name('logs.')->group(function () {
+        Route::get('/', [LogAnalysisController::class, 'index'])->name('index');
+        Route::get('/parser', [LogAnalysisController::class, 'parser'])->name('parser');
+        Route::post('/upload', [LogAnalysisController::class, 'upload'])->name('upload');
+        Route::get('/{analysis}', [LogAnalysisController::class, 'show'])->name('show');
+        Route::get('/{analysis}/progress', [LogAnalysisController::class, 'getProgress'])->name('progress');
+        Route::delete('/{analysis}', [LogAnalysisController::class, 'destroy'])->name('destroy');
+    });
 });
 
+// Vulnerability Database
 Route::middleware(['auth', 'permission:create_vulnerabilities'])->group(function () {
-    Route::get('/vulnerabilities/create', [VulnerabilityController::class, 'create'])->name('vulnerability.create');
-    Route::post('/vulnerabilities', [VulnerabilityController::class, 'store'])->name('vulnerability.store');
+    Route::get('/vulnerabilities/create', [VulnerabilityController::class, 'create'])->name('vulnerabilities.create');
+    Route::post('/vulnerabilities', [VulnerabilityController::class, 'store'])->name('vulnerabilities.store');
+    Route::get('/vulnerabilities/{vulnerability}/edit', [VulnerabilityController::class, 'edit'])->name('vulnerabilities.edit');
+    Route::put('/vulnerabilities/{vulnerability}', [VulnerabilityController::class, 'update'])->name('vulnerabilities.update');
 });
+
+Route::middleware(['auth', 'permission:view_vulnerabilities'])->group(function () {
+    Route::get('/vulnerabilities', [VulnerabilityController::class, 'index'])->name('vulnerabilities.index');
+    Route::get('/vulnerabilities/{vulnerability}', [VulnerabilityController::class, 'show'])->name('vulnerabilities.show');
+});
+
+Route::delete('/vulnerabilities/{vulnerability}', [VulnerabilityController::class, 'destroy'])->name('vulnerabilities.destroy');
 
 // Feed
 Route::get('/feed', [FeedController::class, 'index'])->middleware(['auth'])->name('feed');

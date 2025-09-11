@@ -224,7 +224,7 @@
     }
 
     /* Ensure code blocks without hljs class also get styled */
-    pre {
+    is-dark.pre {
         @apply p-0.5 overflow-x-auto border my-4;
         font-family: var(--font-mono);
         background: #1a1b26 !important; /* tokyo-night-dark background */

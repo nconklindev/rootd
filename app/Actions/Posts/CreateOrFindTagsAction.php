@@ -4,7 +4,7 @@ namespace App\Actions\Posts;
 
 use App\Models\Tag;
 use Illuminate\Support\Str;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class CreateOrFindTagsAction
 {

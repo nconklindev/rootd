@@ -12,16 +12,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Post extends Model
 {
     use HasFactory;
+    use LogsActivity;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    protected static array $recordEvents = ['created', 'updated'];
+
     protected $fillable = [
         'title',
         'slug',
@@ -30,9 +30,11 @@ class Post extends Model
         'excerpt',
         'type',
         'views_count',
+        'category_id',
     ];
 
     protected $appends = ['created_at_human'];
+    protected $guarded = ['id'];
 
     /**
      * Automatically generate a unique slug from the title when creating/updating.
@@ -58,9 +60,15 @@ class Post extends Model
             }
 
             // Only auto-generate excerpt if user didn't provide one and content changed
-            if ($post->isDirty('content') && $post->content !== null && empty($post->excerpt)) {
+            if ($post->isDirty('content') && $post->content !== null) {
                 $post->excerpt = $post->generateExcerpt($post->content);
             }
+        });
+
+        static::deleting(function (Post $post): void {
+            // Detach all tags from this post before deletion
+            // This removes entries from the post_tag pivot table but preserves the tags themselves
+            $post->tags()->detach();
         });
     }
 
@@ -74,10 +82,10 @@ class Post extends Model
         $i = 2;
 
         while (static::query()
-            ->when($ignoreId !== null, fn ($q) => $q->where('id', '!=', $ignoreId))
+            ->when($ignoreId !== null, fn($q) => $q->where('id', '!=', $ignoreId))
             ->where('slug', $slug)
             ->exists()) {
-            $slug = $base.'-'.$i;
+            $slug = $base . '-' . $i;
             $i++;
         }
 
@@ -105,6 +113,11 @@ class Post extends Model
         return Str::limit($excerpt, 252, '...');
     }
 
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'post_tag', 'post_id', 'tag_id');
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
@@ -120,11 +133,6 @@ class Post extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function tags(): BelongsToMany
-    {
-        return $this->belongsToMany(Tag::class, 'post_tag', 'post_id', 'tag_id');
     }
 
     public function category(): BelongsTo
@@ -147,6 +155,16 @@ class Post extends Model
         return $this->morphMany(Like::class, 'likeable');
     }
 
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['title', 'slug'])
+            ->logOnlyDirty()
+            ->dontLogIfAttributesChangedOnly(['views_count'])
+            ->useLogName('posts')
+            ->dontSubmitEmptyLogs();
+    }
+
     /**
      * Scope a query to order posts by view count (most viewed first)
      */
@@ -154,15 +172,6 @@ class Post extends Model
     protected function mostViewed(Builder $query): void
     {
         $query->orderBy('views_count', 'desc');
-    }
-
-    /**
-     * Scope a query to limit results to top N posts
-     */
-    #[Scope]
-    protected function topViewed(Builder $query, int $limit = 10): void
-    {
-        $query->take($limit);
     }
 
     protected function casts(): array
