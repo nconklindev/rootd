@@ -30,7 +30,7 @@ return new class extends Migration
             $table->json('references')->nullable(); // URLs, research papers, etc.
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Who created this record
             $table->timestamps();
-            
+
             $table->index(['severity', 'status']);
             $table->index('affected_product');
             $table->index('discovered_at');

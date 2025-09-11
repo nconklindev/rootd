@@ -179,6 +179,9 @@ class DashboardController extends Controller
         $currentDate = $startDate->copy();
         $endDate = Carbon::now();
 
+        // Pre-fetch user's post IDs once instead of in every loop iteration
+        $userPostIds = $user->posts()->pluck('id');
+
         while ($currentDate->lte($endDate)) {
             $dayStart = $currentDate->copy()->startOfDay();
             $dayEnd = $currentDate->copy()->endOfDay();
@@ -187,7 +190,7 @@ class DashboardController extends Controller
                 'date' => $currentDate->format('Y-m-d'),
                 'posts' => $user->posts()->whereBetween('created_at', [$dayStart, $dayEnd])->count(),
                 'comments' => $user->comments()->whereBetween('created_at', [$dayStart, $dayEnd])->count(),
-                'likes_received' => Like::whereIn('likeable_id', $user->posts()->pluck('id'))
+                'likes_received' => Like::whereIn('likeable_id', $userPostIds) // ✅ Use pre-fetched IDs
                     ->where('likeable_type', Post::class)
                     ->whereBetween('created_at', [$dayStart, $dayEnd])
                     ->count(),

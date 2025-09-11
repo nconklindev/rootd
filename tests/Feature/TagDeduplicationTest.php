@@ -121,9 +121,9 @@ test('tag merging functionality works correctly', function () {
 
 test('tag suggestions include popular tags', function () {
     // Create tags with different usage patterns
-    Tag::create(['name' => 'Laravel', 'slug' => 'laravel', 'color' => '#FF0000', 'usage_count' => 100]);
-    Tag::create(['name' => 'PHP', 'slug' => 'php', 'color' => '#00FF00', 'usage_count' => 50]);
-    Tag::create(['name' => 'Laravel Framework', 'slug' => 'laravel-framework', 'color' => '#0000FF', 'usage_count' => 5]);
+    Tag::create(['name' => 'Laravel', 'slug' => 'laravel', 'color' => '#FF0000']);
+    Tag::create(['name' => 'PHP', 'slug' => 'php', 'color' => '#00FF00']);
+    Tag::create(['name' => 'Laravel Framework', 'slug' => 'laravel-framework', 'color' => '#0000FF']);
 
     // Test suggestions for "laravel"
     $suggestions = Tag::suggestTags('laravel');

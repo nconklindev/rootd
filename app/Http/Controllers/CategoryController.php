@@ -54,7 +54,7 @@ class CategoryController extends Controller
                         $join->on('posts.id', '=', 'likes.likeable_id')
                             ->where('likes.likeable_type', '=', Post::class);
                     });
-                }
+                },
             ])
             ->orderBy('posts_count', 'desc') // Order by most posts first
             ->get();

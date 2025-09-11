@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Post;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Number;
 
 readonly class PostViewService
@@ -87,9 +86,6 @@ readonly class PostViewService
         }
     }
 
-    /**
-     * Atomically increment the view count in the database.
-     */
     private function incrementViewCount(Post $post): void
     {
         Post::where('id', '=', $post->id)->increment('views_count');
@@ -98,19 +94,6 @@ readonly class PostViewService
         $post->refresh();
     }
 
-    /**
-     * Get view count with human-readable formatting.
-     */
-    public function getFormattedViewCount(Post $post): string
-    {
-        $count = $this->getViewCount($post);
-
-        Number::abbreviate($count);
-    }
-
-    /**
-     * Get the current view count for a post.
-     */
     public function getViewCount(Post $post): int
     {
         return $post->views_count ?? 0;

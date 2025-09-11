@@ -5,9 +5,8 @@ use App\Models\Post;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithoutMiddleware;
 
-uses(RefreshDatabase::class, WithoutMiddleware::class);
+uses(RefreshDatabase::class);
 
 test('tags are successfully created when used in a post for the first time', function () {
     // Create a user and category for the post

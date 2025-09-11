@@ -130,7 +130,7 @@ test('view count displays in post index', function () {
     $response = $this->actingAs($user)->get(route('posts.index'));
 
     $response->assertStatus(200);
-    $response->assertInertia(fn($assert) => $assert
+    $response->assertInertia(fn ($assert) => $assert
         ->component('Posts/Index')
         ->has('posts.data.0')
         ->where('posts.data.0.views_count', 42)
@@ -144,7 +144,7 @@ test('view count displays in post show', function () {
     $response = $this->actingAs($user)->get(route('posts.show', $post->slug));
 
     $response->assertStatus(200);
-    $response->assertInertia(fn($assert) => $assert
+    $response->assertInertia(fn ($assert) => $assert
         ->component('Posts/Show')
         ->has('post')
         ->where('post.views_count', 124) // Should be incremented by the visit

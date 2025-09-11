@@ -48,14 +48,14 @@ class HandleInertiaRequests extends Middleware
                     'user' => $request->user(),
                 ],
                 'flash' => [
-                    'message' => fn() => $request->session()->get('message'),
-                    'success' => fn() => $request->session()->get('success'),
+                    'message' => fn () => $request->session()->get('message'),
+                    'success' => fn () => $request->session()->get('success'),
                 ],
                 'ziggy' => [
                     ...(new Ziggy)->toArray(),
                     'location' => $request->url(),
                 ],
-                'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+                'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
                 'siteData' => [
                     'categories' => Category::query()
                         ->select(['name', 'slug', 'color'])
@@ -64,7 +64,7 @@ class HandleInertiaRequests extends Middleware
                         ->orderBy('name')
                         ->limit(10)
                         ->get()
-                        ->map(fn($category) => [
+                        ->map(fn ($category) => [
                             'name' => $category->name,
                             'slug' => $category->slug,
                             'color' => $category->color,

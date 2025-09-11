@@ -13,6 +13,19 @@ class UpdatePostRequest extends FormRequest
         return (bool) $this->user();
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('tags') && is_array($this->tags)) {
+            // Filter out empty tags and trim whitespace
+            $filteredTags = array_filter(
+                array_map('trim', $this->tags),
+                fn ($tag) => ! empty($tag)
+            );
+
+            $this->merge(['tags' => array_values($filteredTags)]);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -22,7 +35,7 @@ class UpdatePostRequest extends FormRequest
             'excerpt' => ['nullable', 'string', 'max:255'],
             'type' => ['nullable', Rule::enum(PostType::class)],
             'tags' => ['nullable', 'array', 'max:5'],
-            'tags.*' => ['string', 'max:50'],
+            'tags.*' => ['required', 'string', 'max:25'],
         ];
     }
 }

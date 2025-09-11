@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import SiteLayout from '@/layouts/SiteLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { parseDate } from '@internationalized/date';
 import { ArrowLeft, Calendar, Eye, Hash, MessageCircle, TrendingUp, Users } from 'lucide-vue-next';
 
 interface Post {
@@ -42,16 +43,29 @@ defineOptions({ layout: SiteLayout });
 const formatDate = (dateString: string) => {
     if (!dateString) return '';
 
-    const date = new Date(dateString);
+    try {
+        // parseDate handles date-only strings correctly without timezone issues
+        const date = parseDate(dateString);
 
-    // Check if the date is valid
-    if (isNaN(date.getTime())) return dateString;
+        // Convert to a native Date for formatting
+        const nativeDate = new Date(date.year, date.month - 1, date.day);
 
-    return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
+        return nativeDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+    } catch (error) {
+        // Fallback for invalid dates or datetime strings
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+    }
 };
 
 const getPostExcerpt = (content: string, length = 150) => {
