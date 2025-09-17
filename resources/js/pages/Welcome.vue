@@ -269,7 +269,7 @@ defineOptions({ layout: SiteLayout });
                     <span class="text-lg font-semibold text-slate-900 dark:text-white">root.d</span>
                 </div>
                 <p class="text-sm text-slate-600 dark:text-slate-300">
-                    © 2025 root.d. Secure knowledge sharing and social platform for our UKG security teams.
+                    © 2025 root.d. Secure knowledge sharing and social platform for all your security teams.
                 </p>
             </div>
         </div>
