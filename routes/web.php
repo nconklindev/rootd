@@ -20,25 +20,25 @@ Route::get('/', function () {
 Route::get('dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 // Posts routes
-Route::get('/posts', [PostController::class, 'index'])->middleware(['auth'])->name('posts.index');
-Route::get('/posts/me', [PostController::class, 'myPosts'])->middleware(['auth'])->name('posts.me');
-Route::get('/posts/create', [PostController::class, 'create'])->middleware(['auth'])->name('posts.create');
-Route::post('/posts', [PostController::class, 'store'])->middleware(['auth'])->name('posts.store');
-Route::get('/posts/{post}', [PostController::class, 'show'])->middleware(['auth'])->name('posts.show');
-Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->middleware(['auth'])->name('posts.edit');
-Route::put('/posts/{post}', [PostController::class, 'update'])->middleware(['auth'])->name('posts.update');
-Route::post('/posts/{id}/like', [PostController::class, 'like'])->middleware(['auth'])->name('posts.like');
-Route::delete('/posts/{id}/like', [PostController::class, 'unlike'])->middleware(['auth'])->name('posts.unlike');
-Route::delete('/posts/{post:id}', [PostController::class, 'destroy'])->middleware(['auth'])->name('posts.destroy');
+Route::get('posts', [PostController::class, 'index'])->middleware(['auth'])->name('posts.index');
+Route::get('posts/me', [PostController::class, 'myPosts'])->middleware(['auth'])->name('posts.me');
+Route::get('posts/create', [PostController::class, 'create'])->middleware(['auth'])->name('posts.create');
+Route::post('posts', [PostController::class, 'store'])->middleware(['auth'])->name('posts.store');
+Route::get('posts/{post}', [PostController::class, 'show'])->middleware(['auth'])->name('posts.show');
+Route::get('posts/{post}/edit', [PostController::class, 'edit'])->middleware(['auth'])->name('posts.edit');
+Route::put('posts/{post}', [PostController::class, 'update'])->middleware(['auth'])->name('posts.update');
+Route::post('posts/{id}/like', [PostController::class, 'like'])->middleware(['auth'])->name('posts.like');
+Route::delete('posts/{id}/like', [PostController::class, 'unlike'])->middleware(['auth'])->name('posts.unlike');
+Route::delete('posts/{post:id}', [PostController::class, 'destroy'])->middleware(['auth'])->name('posts.destroy');
 
 // User Profile and Posts
-Route::get('/u/{user:username}', [UserController::class, 'show'])->middleware(['auth'])->name('users.show');
-Route::post('/u/{user:username}/follow', [UserController::class, 'follow'])->middleware(['auth'])->name('users.follow');
-Route::get('/u/{user:username}/posts', [UserPostController::class, 'index'])->middleware(['auth'])->name('users.posts');
+Route::get('u/{user:username}', [UserController::class, 'show'])->middleware(['auth'])->name('users.show');
+Route::post('u/{user:username}/follow', [UserController::class, 'follow'])->middleware(['auth'])->name('users.follow');
+Route::get('u/{user:username}/posts', [UserPostController::class, 'index'])->middleware(['auth'])->name('users.posts');
 
 // Categories
-Route::get('/categories', [CategoryController::class, 'index'])->middleware(['auth'])->name('categories.index');
-Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->middleware(['auth'])->name('categories.show');
+Route::get('categories', [CategoryController::class, 'index'])->middleware(['auth'])->name('categories.index');
+Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->middleware(['auth'])->name('categories.show');
 
 // Wiki
 
@@ -46,11 +46,11 @@ Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->
 Route::middleware(['auth'])->prefix('tools')->name('tools.')->group(function () {
     Route::prefix('logs')->name('logs.')->group(function () {
         Route::get('/', [LogAnalysisController::class, 'index'])->name('index');
-        Route::get('/parser', [LogAnalysisController::class, 'parser'])->name('parser');
-        Route::post('/upload', [LogAnalysisController::class, 'upload'])->name('upload');
-        Route::get('/{analysis}', [LogAnalysisController::class, 'show'])->name('show');
-        Route::get('/{analysis}/progress', [LogAnalysisController::class, 'getProgress'])->name('progress');
-        Route::delete('/{analysis}', [LogAnalysisController::class, 'destroy'])->name('destroy');
+        Route::get('parser', [LogAnalysisController::class, 'parser'])->name('parser');
+        Route::post('upload', [LogAnalysisController::class, 'upload'])->name('upload');
+        Route::get('{analysis}', [LogAnalysisController::class, 'show'])->name('show');
+        Route::get('{analysis}/progress', [LogAnalysisController::class, 'getProgress'])->name('progress');
+        Route::delete('{analysis}', [LogAnalysisController::class, 'destroy'])->name('destroy');
     });
 });
 

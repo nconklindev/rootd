@@ -19,7 +19,7 @@ Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+//    Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
@@ -46,11 +46,11 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:6,1')
         ->name('verification.send');
 
-    Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
-        ->name('password.confirm');
+//    Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
+//        ->name('password.confirm');
 
-    Route::post('confirm-password', [ConfirmablePasswordController::class, 'store'])
-        ->middleware('throttle:6,1');
+//    Route::post('confirm-password', [ConfirmablePasswordController::class, 'store'])
+//        ->middleware('throttle:6,1');
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
