@@ -32,20 +32,20 @@ class FortifyServiceProvider extends ServiceProvider
     {
         // We aren't using the Fortify Features that would warrant including these in here
 //        Fortify::createUsersUsing(CreateNewUser::class);
+//        Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
-//        Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::loginView(function () {
             return Inertia::render('auth/Login');
-        });
-        Fortify::twoFactorChallengeView(function () {
-            return Inertia::render('auth/TwoFactorChallenge');
         });
         Fortify::confirmPasswordView(function () {
             return Inertia::render('auth/ConfirmPassword');
         });
+        Fortify::twoFactorChallengeView(function () {
+            return Inertia::render('auth/TwoFactorChallenge');
+        });
         Fortify::redirectUserForTwoFactorAuthenticationUsing(RedirectIfTwoFactorAuthenticatable::class);
-        
+
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())) . '|' . $request->ip());
 
