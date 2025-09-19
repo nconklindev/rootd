@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import FormDescription from '@/components/FormDescription.vue';
+import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,6 +37,7 @@ const isConfirming = ref<boolean>(props.isConfirming);
 const qrCodeSvg = ref<string | null>(null);
 const secretKey = ref<string | null>(null);
 const recoveryCodes = ref<string[]>([]);
+const showRecoveryCodes = ref(false);
 const loadingQr = ref(false);
 const loadingRecovery = ref(false);
 
@@ -68,18 +70,30 @@ async function fetchQrAndSecret() {
 }
 
 async function loadRecoveryCodes() {
+    if (!props.twoFactorEnabled) {
+        recoveryCodes.value = [];
+        return;
+    }
+
+    loadingRecovery.value = true;
+
     try {
-        let data = [];
-        loadingRecovery.value = true;
-        const response = await fetch(route('two-factor.recovery-codes'));
-
-        if (response.ok) {
-            data = await response.json();
-        }
-
+        const { data } = await axios.get(route('two-factor.recovery-codes'));
         recoveryCodes.value = Array.isArray(data) ? data : [];
-    } catch (error) {
-        console.error(error);
+    } catch (error: any) {
+        if (axios.isAxiosError(error)) {
+            // If Fortify requires a recent password confirmation, Laravel may
+            // respond with a 4xx/redirect. Navigate there via Inertia
+            const status = error?.response?.status;
+            // From checking browser logs, this is only ever a 423 status code
+            if (status === 423) {
+                router.visit(route('password.confirm'), { preserveScroll: true });
+                return;
+            }
+
+            console.error('Failed to load recovery codes:', error.response?.data?.message || error.message);
+            recoveryCodes.value = [];
+        }
     } finally {
         loadingRecovery.value = false;
     }
@@ -115,12 +129,16 @@ function submit() {
 
 function confirmTwoFactor() {
     form.post(route('two-factor.confirm'), {
+        errorBag: 'confirmTwoFactorAuthentication',
         preserveScroll: true,
         onSuccess: () => {
             // Reload the page props to reflect the confirmed state
             router.reload({ only: ['twoFactorEnabled', 'isConfirming', 'backupCodesGenerated'] });
             isConfirming.value = false;
             form.code = '';
+        },
+        onError: (errors) => {
+            console.log(errors.code);
         },
     });
 }
@@ -174,7 +192,7 @@ onMounted(() => {
                         <component :is="securityStatus.icon" :class="[securityStatus.color, 'mt-0.5 h-5 w-5']" />
                         <div class="space-y-1">
                             <p class="text-sm font-medium">
-                                {{ props.twoFactorEnabled ? 'Two-factor authentication is enabled' : 'Basic security active' }}
+                                {{ props.twoFactorEnabled ? 'Two-factor authentication is enabled' : 'Two-factor authentication is disabled' }}
                             </p>
                             <p class="text-xs text-muted-foreground">
                                 {{
@@ -224,7 +242,7 @@ onMounted(() => {
                                 </div>
                             </div>
 
-                            <!-- QR Code Section (shown when enabling 2FA and during confirmation) -->
+                            <!-- QR Code Section -->
                             <div
                                 v-if="(form.two_factor_enabled && !props.twoFactorEnabled) || isConfirming"
                                 class="rounded-lg border bg-muted/30 p-4"
@@ -235,7 +253,7 @@ onMounted(() => {
                                         <h4 class="text-sm font-medium">Setup Authenticator App</h4>
                                     </div>
                                     <p class="text-xs text-muted-foreground">
-                                        Scan the QR code below with your authenticator app (like Google Authenticator, Authy, or 1Password).
+                                        Scan the QR code below with an authenticator app (like Google Authenticator, Authy, or 1Password).
                                     </p>
                                     <!-- QR Code -->
                                     <div class="flex justify-center p-6">
@@ -253,15 +271,14 @@ onMounted(() => {
                                             QR not available yet
                                         </div>
                                     </div>
-                                    <div v-if="secretKey" class="text-center text-xs text-muted-foreground">
-                                        Or enter this key manually: <span class="font-mono text-sm">{{ secretKey }}</span>
-                                    </div>
                                     <div class="space-y-2">
                                         <Label for="verification_code">Verification Code</Label>
                                         <Input
                                             id="verification_code"
                                             v-model="form.code"
+                                            autocomplete="one-time-code"
                                             class="text-center font-mono text-lg tracking-widest"
+                                            inputmode="numeric"
                                             maxlength="6"
                                             placeholder="Enter 6-digit code from your app"
                                         />
@@ -269,6 +286,7 @@ onMounted(() => {
                                             class="text-xs"
                                             message="Enter the 6-digit code from your authenticator app to complete setup."
                                         />
+                                        <InputError :message="form.errors.code" class="my-4" />
                                         <div>
                                             <Button :disabled="form.processing || !form.code" size="sm" type="button" @click="confirmTwoFactor"
                                                 >Confirm</Button
@@ -289,12 +307,12 @@ onMounted(() => {
                                         <Badge v-if="props.backupCodesGenerated" variant="outline"> Generated </Badge>
                                     </div>
                                     <p class="text-xs text-muted-foreground">
-                                        Backup codes can be used to access your account if you lose your authenticator device. Store them in a safe
-                                        place.
+                                        Store these recovery codes in a secure password manager such as LastPass, Proton Pass, 1Password, etc. They
+                                        can be used to recover access to your account if your two factor authentication device is lost.
                                     </p>
                                     <div class="flex items-center gap-2">
                                         <Button :disabled="loadingRecovery" size="sm" type="button" variant="outline" @click="loadRecoveryCodes">
-                                            {{ loadingRecovery ? 'Loading…' : 'Show Backup Codes' }}
+                                            {{ loadingRecovery ? 'Loading…' : showRecoveryCodes ? 'Hide' : 'Show ' + 'Recovery Codes' }}
                                         </Button>
                                         <Button
                                             :disabled="loadingRecovery"
