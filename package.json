@@ -24,7 +24,7 @@
         "vue-tsc": "^2.2.4"
     },
     "dependencies": {
-        "@inertiajs/vue3": "^2.1.5",
+        "@inertiajs/vue3": "^2.2.2",
         "@tailwindcss/vite": "^4.1.13",
         "@tiptap/extension-code-block-lowlight": "^3.3.0",
         "@tiptap/extension-hard-break": "^3.4.1",
