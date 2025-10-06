@@ -39,28 +39,32 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+        $user = $request->user();
 
         return
             array_merge(parent::share($request), [
                 'name' => config('app.name'),
                 'quote' => ['message' => trim($message), 'author' => trim($author)],
                 'auth' => [
-                    'user' => [
-                        'id' => $request->user()?->id,
-                        'name' => $request->user()?->name,
-                        'username' => $request->user()?->username,
-                        'roles' => $request->user()?->getRoleNames(),
-                    ],
+                    'user' => $user ? [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'avatar' => $user->avatar,
+                        'username' => $user->username,
+                        'roles' => $user->getRoleNames(),
+                        'email_verified_at' => $user->email_verified_at,
+                    ] : null,
                 ],
                 'flash' => [
-                    'message' => fn () => $request->session()->get('message'),
-                    'success' => fn () => $request->session()->get('success'),
+                    'message' => fn() => $request->session()->get('message'),
+                    'success' => fn() => $request->session()->get('success'),
                 ],
                 'ziggy' => [
                     ...(new Ziggy)->toArray(),
                     'location' => $request->url(),
                 ],
-                'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+                'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
                 'siteData' => [
                     'categories' => Category::query()
                         ->select(['name', 'slug', 'color'])
@@ -69,7 +73,7 @@ class HandleInertiaRequests extends Middleware
                         ->orderBy('name')
                         ->limit(10)
                         ->get()
-                        ->map(fn ($category) => [
+                        ->map(fn($category) => [
                             'name' => $category->name,
                             'slug' => $category->slug,
                             'color' => $category->color,

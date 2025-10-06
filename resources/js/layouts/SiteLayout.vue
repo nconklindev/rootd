@@ -8,6 +8,7 @@ import UserMenuContent from '@/components/UserMenuContent.vue';
 import { useAppearance } from '@/composables/useAppearance';
 import { getInitials } from '@/composables/useInitials';
 import SidebarLayout from '@/layouts/SidebarLayout.vue';
+import { Auth } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Menu, Monitor, Moon, Search, Shield, Sun } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -17,7 +18,22 @@ const props = defineProps({
 });
 
 const page = usePage();
-const auth = page.props.auth as { user?: any };
+
+// Auth handling
+const auth = computed<Auth>(() => {
+    const authProp = page.props.auth as Auth | undefined;
+    return authProp ?? { user: null };
+});
+
+// Computed property for user with better null checking
+const user = computed(() => {
+    return auth.value?.user ?? null;
+});
+
+// Check if user is authenticated
+const isAuthenticated = computed(() => {
+    return user.value !== null && user.value !== undefined;
+});
 
 // Determine if sidebar should be shown
 const showSidebar = computed(() => {
@@ -60,6 +76,8 @@ const showMobileSidebar = ref(false);
 const toggleMobileSidebar = () => {
     showMobileSidebar.value = !showMobileSidebar.value;
 };
+
+console.log(isAuthenticated.value);
 </script>
 
 <template>
@@ -80,7 +98,7 @@ const toggleMobileSidebar = () => {
                 </div>
 
                 <!-- Center items -->
-                <div v-if="auth.user" class="flex items-center justify-center space-x-2">
+                <div class="flex items-center justify-center space-x-2">
                     <NavigationMenu>
                         <NavigationMenuList>
                             <NavigationMenuItem>
@@ -120,24 +138,24 @@ const toggleMobileSidebar = () => {
                         </Tooltip>
 
                         <!-- User Menu -->
-                        <DropdownMenu v-if="auth.user">
+                        <DropdownMenu v-if="isAuthenticated && user">
                             <DropdownMenuTrigger as-child>
                                 <Button class="h-9 w-9 rounded-full" size="icon" variant="ghost">
                                     <Avatar class="h-8 w-8">
-                                        <AvatarImage v-if="auth.user.avatar" :alt="auth.user.name" :src="auth.user.avatar" />
+                                        <AvatarImage v-if="user.avatar" :alt="user.name" :src="user.avatar" />
                                         <AvatarFallback class="bg-muted text-xs font-semibold">
-                                            {{ getInitials(auth.user?.name) }}
+                                            {{ getInitials(user.name) }}
                                         </AvatarFallback>
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" class="w-56">
-                                <UserMenuContent :user="auth.user" />
+                                <UserMenuContent :user="user" />
                             </DropdownMenuContent>
                         </DropdownMenu>
 
                         <!-- Guest Actions -->
-                        <div v-else class="flex items-center space-x-2">
+                        <div v-if="!isAuthenticated" class="flex items-center space-x-2">
                             <Button as-child size="sm" variant="ghost">
                                 <Link :href="route('login')">Login</Link>
                             </Button>
@@ -151,10 +169,7 @@ const toggleMobileSidebar = () => {
         </header>
 
         <!-- Sidebar -->
-        <SidebarLayout 
-            :show-mobile="showMobileSidebar" 
-            @toggle-mobile="toggleMobileSidebar" 
-        />
+        <SidebarLayout :show-mobile="showMobileSidebar" @toggle-mobile="toggleMobileSidebar" />
 
         <!-- Main Content -->
         <main :class="['pt-16 transition-all duration-300 ease-in-out', showSidebar ? 'lg:pl-70' : '']">

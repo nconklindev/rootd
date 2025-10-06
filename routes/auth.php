@@ -19,7 +19,7 @@ Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+//    Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
@@ -46,11 +46,20 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:6,1')
         ->name('verification.send');
 
-    Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
-        ->name('password.confirm');
+//    Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
+//        ->name('password.confirm');
 
-    Route::post('confirm-password', [ConfirmablePasswordController::class, 'store'])
-        ->middleware('throttle:6,1');
+//    Route::post('confirm-password', [ConfirmablePasswordController::class, 'store'])
+//        ->middleware('throttle:6,1');
+
+    Route::get('/user/confirm-password/with-intended', function () {
+        $redirect = request()->query('redirect', route('security.edit'));
+
+        // Store intended URL so Fortify’s confirm flow will send the user back here
+        Redirect::setIntendedUrl($redirect);
+
+        return redirect()->route('password.confirm');
+    })->name('auth.confirm-password.with-intended');
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
