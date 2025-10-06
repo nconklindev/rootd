@@ -4,14 +4,13 @@ import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import SiteLayout from '@/layouts/SiteLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import { Key, Shield, ShieldCheck, ShieldX, Smartphone } from 'lucide-vue-next';
+import { Check, Key, Shield, ShieldCheck, ShieldX, Smartphone } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 
 interface Props {
@@ -70,6 +69,7 @@ async function fetchQrAndSecret() {
 }
 
 async function loadRecoveryCodes() {
+    // WORKING
     if (!props.twoFactorEnabled) {
         recoveryCodes.value = [];
         return;
@@ -80,6 +80,10 @@ async function loadRecoveryCodes() {
     try {
         const { data } = await axios.get(route('two-factor.recovery-codes'));
         recoveryCodes.value = Array.isArray(data) ? data : [];
+
+        if (recoveryCodes.value.length) {
+            showRecoveryCodes.value = true;
+        }
     } catch (error: any) {
         if (axios.isAxiosError(error)) {
             // If Fortify requires a recent password confirmation, Laravel may
@@ -87,21 +91,55 @@ async function loadRecoveryCodes() {
             const status = error?.response?.status;
             // From checking browser logs, this is only ever a 423 status code
             if (status === 423) {
-                router.visit(route('password.confirm'), { preserveScroll: true });
-                return;
+                const backTo = route('security.edit', { 'show-recovery-codes': 1 });
+
+                const confirmUrl = route('auth.confirm-password.with-intended', {
+                    redirect: backTo,
+                });
+
+                router.visit(confirmUrl);
             }
 
             console.error('Failed to load recovery codes:', error.response?.data?.message || error.message);
             recoveryCodes.value = [];
+            showRecoveryCodes.value = false;
+        } else {
+            console.error('An unexpected error occurred:', error);
+            recoveryCodes.value = [];
+            showRecoveryCodes.value = false;
         }
     } finally {
         loadingRecovery.value = false;
     }
 }
 
+async function toggleRecoveryCodes() {
+    if (!props.twoFactorEnabled) {
+        // Nothing to show if 2FA is off
+        showRecoveryCodes.value = false;
+        recoveryCodes.value = [];
+        return;
+    }
+
+    // If currently visible, just hide without fetching
+    if (showRecoveryCodes.value) {
+        showRecoveryCodes.value = false;
+        return;
+    }
+
+    // Otherwise, fetch and show
+    await loadRecoveryCodes();
+    if (recoveryCodes.value.length) {
+        showRecoveryCodes.value = true;
+    }
+}
+
 async function regenerateRecoveryCodes() {
     router.post(route('two-factor.regenerate-recovery-codes'), {}, { preserveScroll: true });
     await loadRecoveryCodes();
+    if (recoveryCodes.value.length) {
+        showRecoveryCodes.value = true;
+    }
 }
 
 function submit() {
@@ -220,14 +258,20 @@ onMounted(() => {
                         <div class="space-y-4">
                             <!-- 2FA Toggle -->
                             <div class="flex items-start space-x-3">
-                                <Checkbox
-                                    id="two_factor_enabled"
-                                    v-model:checked="form.two_factor_enabled"
-                                    :disabled="twoFactorEnabled"
-                                    class="mt-1"
-                                    name="two_factor_enabled"
-                                    type="checkbox"
-                                />
+                                <div class="relative flex items-center">
+                                    <input
+                                        id="two_factor_enabled"
+                                        v-model="form.two_factor_enabled"
+                                        :disabled="twoFactorEnabled"
+                                        class="peer size-4 shrink-0 cursor-pointer appearance-none rounded-[4px] border border-input bg-background shadow-xs transition-shadow outline-none checked:border-primary checked:bg-primary hover:border-ring focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                                        name="two_factor_enabled"
+                                        type="checkbox"
+                                    />
+                                    <Check
+                                        v-if="form.two_factor_enabled"
+                                        class="pointer-events-none absolute top-0 left-0 size-4 p-0.5 font-bold text-primary-foreground"
+                                    />
+                                </div>
                                 <div class="flex-1 space-y-1">
                                     <Label
                                         class="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -253,7 +297,7 @@ onMounted(() => {
                                         <h4 class="text-sm font-medium">Setup Authenticator App</h4>
                                     </div>
                                     <p class="text-xs text-muted-foreground">
-                                        Scan the QR code below with an authenticator app (like Google Authenticator, Authy, or 1Password).
+                                        Scan the QR code below with an authenticator app (like Google Authenticator or Authy).
                                     </p>
                                     <!-- QR Code -->
                                     <div class="flex justify-center p-6">
@@ -311,11 +355,19 @@ onMounted(() => {
                                         can be used to recover access to your account if your two factor authentication device is lost.
                                     </p>
                                     <div class="flex items-center gap-2">
-                                        <Button :disabled="loadingRecovery" size="sm" type="button" variant="outline" @click="loadRecoveryCodes">
-                                            {{ loadingRecovery ? 'Loading…' : showRecoveryCodes ? 'Hide' : 'Show ' + 'Recovery Codes' }}
+                                        <Button
+                                            :disabled="loadingRecovery"
+                                            class="cursor-pointer"
+                                            size="sm"
+                                            type="button"
+                                            variant="outline"
+                                            @click="toggleRecoveryCodes"
+                                        >
+                                            {{ loadingRecovery ? 'Loading…' : showRecoveryCodes ? 'Hide' : 'Show Recovery Codes' }}
                                         </Button>
                                         <Button
                                             :disabled="loadingRecovery"
+                                            class="cursor-pointer"
                                             size="sm"
                                             type="button"
                                             variant="secondary"
@@ -324,7 +376,7 @@ onMounted(() => {
                                             Regenerate Codes
                                         </Button>
                                     </div>
-                                    <ul v-if="recoveryCodes.length" class="mt-3 grid grid-cols-2 gap-2 font-mono text-xs">
+                                    <ul v-if="showRecoveryCodes && recoveryCodes.length" class="mt-3 grid grid-cols-2 gap-2 font-mono text-xs">
                                         <li v-for="code in recoveryCodes" :key="code" class="rounded border bg-background px-2 py-1">{{ code }}</li>
                                     </ul>
                                 </div>
@@ -347,6 +399,7 @@ onMounted(() => {
 
                             <Button
                                 v-if="props.twoFactorEnabled && form.two_factor_enabled"
+                                class="cursor-pointer"
                                 type="button"
                                 variant="destructive"
                                 @click="
