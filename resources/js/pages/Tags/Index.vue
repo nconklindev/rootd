@@ -4,9 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SiteLayout from '@/layouts/SiteLayout.vue';
-import { Head, Link, WhenVisible } from '@inertiajs/vue3';
+import { Head, InfiniteScroll, Link } from '@inertiajs/vue3';
 import { Search, Tag as TagIcon, TrendingUp, X } from 'lucide-vue-next';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 defineOptions({ layout: SiteLayout });
 
@@ -18,17 +18,11 @@ interface Tag {
     posts_count: number;
 }
 
-interface Pagination {
-    current_page: number;
-    last_page: number;
-    has_more_pages: boolean;
-    per_page: number;
-    total: number;
-}
-
 const props = defineProps<{
-    tags: Tag[];
-    pagination: Pagination;
+    tags: {
+        data: Tag[];
+    };
+    popularTags: Tag[];
     allTagsCount: number;
     totalTags?: number;
     totalPosts?: number;
@@ -36,23 +30,8 @@ const props = defineProps<{
 
 const searchQuery = ref('');
 
-watch(
-    () => props.pagination.current_page,
-    (newPage, oldPage) => {
-        // Skip on the initial load
-        if (oldPage === undefined) return;
-
-        // If we moved to a higher page, append the new tags
-        if (newPage > oldPage) {
-            const existingIds = new Set(allLoadedTags.value.map((tag) => tag.id));
-            const newTags = props.tags.filter((tag) => !existingIds.has(tag.id));
-            allLoadedTags.value.push(...newTags);
-        }
-    },
-);
-
-// All loaded tags (from all pages)
-const allLoadedTags = ref<Tag[]>(props.tags);
+// All loaded tags
+const allLoadedTags = ref<Tag[]>(props.tags.data);
 
 const filteredTags = computed(() => {
     if (!searchQuery.value) {
@@ -62,16 +41,8 @@ const filteredTags = computed(() => {
     return allLoadedTags.value.filter((tag) => tag.name.toLowerCase().includes(searchQuery.value.toLowerCase()));
 });
 
-const popularTags = computed(() => {
-    return filteredTags.value.filter((tag) => tag.posts_count > 0).slice(0, 12);
-});
-
 const totalPosts = computed(() => {
     return props.totalPosts || allLoadedTags.value.reduce((total, tag) => total + tag.posts_count, 0);
-});
-
-const reachedEnd = computed(() => {
-    return props.pagination.current_page >= props.pagination.last_page;
 });
 
 const getTagSizeClass = (postsCount: number) => {
@@ -109,7 +80,7 @@ onUnmounted(() => {
         </div>
 
         <!-- Search Bar -->
-        <div class="mb-8 flex justify-center">
+        <div class="mb-8 flex justify-end">
             <div class="relative w-full max-w-md">
                 <Input v-model="searchQuery" class="pr-10 pl-10" placeholder="Search tags..." />
                 <span class="absolute inset-y-0 start-0 flex items-center justify-center px-2">
@@ -127,7 +98,7 @@ onUnmounted(() => {
         </div>
 
         <!-- Stats -->
-        <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="mb-8 grid grid-cols-2 gap-4">
             <div class="rounded-lg border bg-card p-6 text-center">
                 <div class="text-2xl font-bold text-primary">{{ allTagsCount }}</div>
                 <div class="text-sm text-muted-foreground">Total Tags</div>
@@ -135,10 +106,6 @@ onUnmounted(() => {
             <div class="rounded-lg border bg-card p-6 text-center">
                 <div class="text-2xl font-bold text-primary">{{ totalPosts }}</div>
                 <div class="text-sm text-muted-foreground">Total Posts</div>
-            </div>
-            <div class="rounded-lg border bg-card p-6 text-center">
-                <div class="text-2xl font-bold text-primary">{{ popularTags.length }}</div>
-                <div class="text-sm text-muted-foreground">Active Tags</div>
             </div>
         </div>
 
@@ -171,46 +138,36 @@ onUnmounted(() => {
         <!-- All Tags Grid -->
         <div class="mb-6 flex items-center space-x-2">
             <TagIcon class="h-5 w-5 text-primary" />
-            <h2 class="text-xl font-semibold">All Tags</h2>
-            <span class="text-sm text-muted-foreground">({{ filteredTags.length }})</span>
-        </div>
-
-        <div v-if="filteredTags.length > 0" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <Link
-                v-for="tag in filteredTags"
-                :key="tag.id"
-                :href="`/tags/${tag.slug}`"
-                class="group block rounded-lg border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-md"
-            >
-                <div class="flex items-start justify-between">
-                    <div class="flex-1">
-                        <div class="flex items-center space-x-3">
-                            <div :style="{ backgroundColor: tag.color }" class="h-4 w-4 flex-shrink-0 rounded-full" />
-                            <h3 class="font-medium transition-colors group-hover:text-primary">
-                                {{ tag.name }}
-                            </h3>
-                        </div>
-                    </div>
-                    <Badge :style="{ backgroundColor: tag.color + '20', color: tag.color }" class="ml-2 flex-shrink-0">
-                        {{ tag.posts_count }} {{ tag.posts_count === 1 ? 'post' : 'posts' }}
-                    </Badge>
-                </div>
-            </Link>
+            <h2 class="text-xl font-semibold">Tags</h2>
+            <span class="text-sm text-muted-foreground">({{ tags.data.length }})</span>
         </div>
 
         <!-- Infinite Scroll Loader -->
-        <WhenVisible
-            :always="!reachedEnd"
-            :buffer="25"
-            :params="{
-                only: ['tags', 'pagination', 'allTags'],
-                data: {
-                    page: pagination.current_page + 1,
-                },
-                preserveUrl: true,
-            }"
-        >
-            <template #fallback>
+        <InfiniteScroll data="tags" only-next>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <Link
+                    v-for="tag in tags.data"
+                    :key="tag.id"
+                    :href="`/tags/${tag.slug}`"
+                    class="group block rounded-lg border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-md"
+                >
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3">
+                                <div :style="{ backgroundColor: tag.color }" class="h-4 w-4 flex-shrink-0 rounded-full" />
+                                <h3 class="font-medium transition-colors group-hover:text-primary">
+                                    {{ tag.name }}
+                                </h3>
+                            </div>
+                        </div>
+                        <Badge :style="{ backgroundColor: tag.color + '20', color: tag.color }" class="ml-2 flex-shrink-0">
+                            {{ tag.posts_count }} {{ tag.posts_count === 1 ? 'post' : 'posts' }}
+                        </Badge>
+                    </div>
+                </Link>
+            </div>
+
+            <template #loading>
                 <div class="flex items-center justify-center py-8 text-center">
                     <div class="inline-flex items-center space-x-2 text-center text-muted-foreground">
                         <div class="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
@@ -218,7 +175,7 @@ onUnmounted(() => {
                     </div>
                 </div>
             </template>
-        </WhenVisible>
+        </InfiniteScroll>
 
         <!-- Empty State -->
         <div v-if="filteredTags.length === 0" class="py-12 text-center">

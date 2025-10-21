@@ -4,39 +4,34 @@ namespace App\Http\Controllers;
 
 use App\Models\Tag;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class TagController extends Controller
 {
-    public function index()
+    public function index(): Response
     {
+        // Paginated tags list for "All Tags" section
         $tags = Tag::query()
             ->withCount('posts')
             ->orderBy('posts_count', 'desc')
             ->orderBy('name')
-            ->paginate(30);
+            ->paginate(10);
 
-        // Get stats for the initial page load only
-        $totalTags = request()->get('page', 1) == 1
-            ? Tag::count()
-            : null;
+        // Popular Tags stats
+        $popularTags = Tag::withCount('posts')->orderBy('posts_count', 'desc')->limit(10)->get();
 
+        // Summary Stats
         $allTagsCount = Tag::all()->count();
 
         $totalPosts = request()->get('page', 1) == 1
             ? Tag::withCount('posts')->get()->sum('posts_count')
             : null;
 
+        // Return
         return Inertia::render('Tags/Index', [
-            'tags' => Inertia::merge($tags->items()), // Merge the tags with the pagination data
-            'pagination' => [
-                'current_page' => $tags->currentPage(),
-                'last_page' => $tags->lastPage(),
-                'has_more_pages' => $tags->hasMorePages(),
-                'per_page' => $tags->perPage(),
-                'total' => $tags->total(),
-            ],
+            'tags' => Inertia::scroll($tags), // Paginated above so no need for paginate here
+            'popularTags' => $popularTags,
             'allTagsCount' => $allTagsCount,
-            'totalTags' => $totalTags,
             'totalPosts' => $totalPosts,
         ]);
     }
